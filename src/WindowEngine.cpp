@@ -4,6 +4,10 @@
 #include <GLFW/glfw3.h> 
 #include <glm/glm.hpp>
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include <iostream>
 
 namespace window {
@@ -21,6 +25,8 @@ namespace window {
     int initOpenGL();
 
     int init();
+
+    void appInfo();
  
     void refresh();
     void terminate();
@@ -89,6 +95,21 @@ void window::refresh() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
+}
+
+void window::appInfo() {
+    static bool on = true;
+    ImGui::Begin("Window Info", &on);
+
+        std::string cl = "ClockRate: " + std::to_string(physics::deltaTime);
+        std::string wh = "Window Height:" + std::to_string(window::height);
+        std::string ww = "Window Width: " + std::to_string(window::width);
+
+        ImGui::Text(cl.c_str());
+        ImGui::Text(ww.c_str());
+        ImGui::Text(wh.c_str());
+
+    ImGui::End();
 }
 
 void window::terminate() {

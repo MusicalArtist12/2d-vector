@@ -8,18 +8,6 @@
 
 #include "WindowEngine.cpp"
 
-struct app {
-    void (*funct)();  
-
-    app(void (*f)()) {
-        funct = f;
-    }
-
-    void operator()() {
-        funct();
-    }
-};
-
 namespace gui {
     std::vector<app> apps;
 
@@ -51,10 +39,6 @@ void gui::refresh() {
 }
 
 void gui::render() {
-
-    for(int i = 0; i < apps.size(); i++) {
-        apps[i]();
-    }
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
