@@ -6,29 +6,29 @@
 
 #include "../WindowEngine.cpp"
 
+#include <imgui.h>
+
 class camera {
     public:
-        glm::mat4 view();
-
-        glm::vec2 pos = glm::vec2(0.0f, 0.0f);
-        glm::mat4 projection();
-
         float left;
         float right;
         float bottom;
         float top;
-
-        float relWidth;
-        float relHeight;
         
         float scale = 100;
 
         float speed = 1000.0;
 
-        void InputLoop(float deltaTime);
-
         const float maxScale = 10000;
         const float minScale = 0.100;
+
+        glm::mat4 view();
+
+        glm::vec2 pos = glm::vec2(0.0f, 0.0f);
+        glm::mat4 projection();
+
+        void InputLoop(float deltaTime);
+        void appInfo();
 };
 
 glm::mat4 camera::projection() {
@@ -39,8 +39,8 @@ glm::mat4 camera::projection() {
     0.1f, 100.0f);
     */
 
-    relWidth = window::width/(2 * scale);
-    relHeight = window::height/(2 * scale);
+    float relWidth = window::width/(2 * scale);
+    float relHeight = window::height/(2 * scale);
     
     left = -1 * relWidth;
     right = 1* relWidth;
@@ -108,6 +108,19 @@ void camera::InputLoop(float deltaTime) {
         window::readMousePos(&x_i, &y_i);
     } else {
         next_cycle = false;
-    }
-    
+    }    
+}
+
+void camera::appInfo() {
+    static bool on = true;
+    ImGui::Begin("Camera Info", &on);
+
+        std::string cp = "Camera Pos: (" + std::to_string(pos.x) + ", " + std::to_string(pos.y) + ")";
+
+        ImGui::Text(cp.c_str());
+
+        ImGui::SliderFloat("Camera Scale", &scale, minScale, maxScale);
+        ImGui::SliderFloat("Camera Speed", &speed, 500, 2000);
+
+    ImGui::End();
 }

@@ -18,13 +18,14 @@ namespace window {
 
     GLFWwindow* window;
 
+    // callbacks
     void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
+    // initializers
     int initGLFW();
     int initWindow();
     int initOpenGL();
     int initImGui();
-
     int init();
 
     void appInfo();
@@ -33,6 +34,7 @@ namespace window {
     void render();
     void terminate();
 
+    // io calls
     ImFont* loadFont(const char* path, float size);
     int readKey(int key);
     int readMouseButton(int key);
@@ -114,13 +116,8 @@ void window::refresh() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-    
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
-
-    //ImGui::NewFrame();
-    //test();
-     
 }
 
 void window::render() {

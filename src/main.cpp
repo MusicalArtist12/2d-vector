@@ -38,8 +38,7 @@ void loop();
 
 int main() {
     window::init();
-    //gui::init();
-    
+
     window::loadFont("bin/fonts/SourceCodePro-Regular.otf", 32);
 
     mesh mesh0(mesh0_vertices, mesh0_index);
@@ -73,6 +72,7 @@ void loop() {
 
         render::drawMesh(*meshptr, glm::mat4(1.0f));
 
+        render::activeCamera->appInfo();
         window::appInfo();
         window::render();
     }
