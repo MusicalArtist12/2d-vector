@@ -9,8 +9,6 @@
 #include "WindowEngine.cpp"
 
 namespace gui {
-    std::vector<app> apps;
-
     void init();
     void refresh();
     void render();
