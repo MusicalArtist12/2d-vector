@@ -10,10 +10,8 @@
 // Physics Engine
 #include "PhysicsEngine.cpp"
 
-
 // Window Engine
 #include "WindowEngine.cpp" // Layer between OS and code
-#include "GuiEngine.cpp" // can come first due to function pointers
 
 // Objects
 #include "Objects/Camera.cpp"
@@ -21,9 +19,6 @@
 
 // Render Engine
 #include "RenderEngine.cpp" // Translation layer between specific shader code
-
-
-
 
 std::vector<vertex> mesh0_vertices = {
     vertex(-1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f),
@@ -43,10 +38,9 @@ void loop();
 
 int main() {
     window::init();
-    gui::init();
-    gui::loadFont("bin/fonts/SourceCodePro-Regular.otf", 32);
-
-    gui::loadFont("bin/fonts/SourceCodePro-Regular.otf", 32);
+    //gui::init();
+    
+    window::loadFont("bin/fonts/SourceCodePro-Regular.otf", 32);
 
     mesh mesh0(mesh0_vertices, mesh0_index);
     meshptr = &mesh0;
@@ -56,7 +50,6 @@ int main() {
 
     loop();
 
-    gui::terminate();
     window::terminate();
     
     return 0;
@@ -72,9 +65,7 @@ void loop() {
         render::activeShader->bind();
         // check for changes
         window::refresh();
-        gui::refresh();
-
-        //ImGui::ShowStyleEditor();
+        ImGui::NewFrame();
 
         glClearColor(background_color[0], background_color[1], background_color[2], 1.0f);  
         render::updateCamera();
@@ -83,7 +74,7 @@ void loop() {
         render::drawMesh(*meshptr, glm::mat4(1.0f));
 
         window::appInfo();
-        gui::render();
+        window::render();
     }
 }
 

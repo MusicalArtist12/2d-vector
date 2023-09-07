@@ -61,26 +61,26 @@ glm::mat4 camera::view() {
 
 void camera::InputLoop(float deltaTime) {
     
-    if(glfwGetKey(window::window, GLFW_KEY_UP) == GLFW_PRESS) {
+    if(window::readKey(GLFW_KEY_UP) == GLFW_PRESS) {
         pos += glm::vec2(0.0, speed/scale) * deltaTime;
     }
-    if(glfwGetKey(window::window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+    if(window::readKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
         pos -= glm::vec2(0.0, speed/scale) * deltaTime;
     }
-    if(glfwGetKey(window::window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+    if(window::readKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
         pos -= glm::vec2(speed/scale, 0.0) * deltaTime;
     }
-    if(glfwGetKey(window::window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+    if(window::readKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
         pos += glm::vec2(speed/scale, 0.0) * deltaTime;
     }
-    if(glfwGetKey(window::window, GLFW_KEY_PAGE_UP) == GLFW_PRESS && scale < maxScale) {
+    if(window::readKey(GLFW_KEY_PAGE_UP) == GLFW_PRESS && scale < maxScale) {
         scale += speed * deltaTime;
 
         if(scale > maxScale) {
             scale = maxScale;
         }
     }
-    if(glfwGetKey(window::window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS && scale > minScale) {
+    if(window::readKey(GLFW_KEY_PAGE_DOWN) == GLFW_PRESS && scale > minScale) {
         scale -= speed * deltaTime;
 
         if(scale < minScale) {
@@ -93,7 +93,7 @@ void camera::InputLoop(float deltaTime) {
     if(next_cycle) {        
         double x_f, y_f;
 
-        glfwGetCursorPos(window::window, &x_f, &y_f);
+        window::readMousePos(&x_f, &y_f);
 
         double deltaX = (x_f - x_i) * (1/scale);
         double deltaY = (y_f - y_i) * (1/scale);
@@ -103,12 +103,11 @@ void camera::InputLoop(float deltaTime) {
     }
 
 
-    if(glfwGetMouseButton(window::window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+    if(window::readMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         next_cycle = true;
-        glfwGetCursorPos(window::window, &x_i, &y_i);
+        window::readMousePos(&x_i, &y_i);
     } else {
         next_cycle = false;
     }
     
 }
-

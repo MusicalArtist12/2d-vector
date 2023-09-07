@@ -23,13 +23,20 @@ namespace window {
     int initGLFW();
     int initWindow();
     int initOpenGL();
+    int initImGui();
 
     int init();
 
     void appInfo();
  
     void refresh();
+    void render();
     void terminate();
+
+    ImFont* loadFont(const char* path, float size);
+    int readKey(int key);
+    int readMouseButton(int key);
+    void readMousePos(double* x, double* y);
 }
 
 void window::framebuffer_size_callback(GLFWwindow* window, int w, int h) {
@@ -65,7 +72,6 @@ int window::initWindow() {
     glfwMakeContextCurrent(window); // must come before OpenGL initialization
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-
     return 1;
 } 
 
@@ -81,10 +87,23 @@ int window::initOpenGL() {
     return 1;
 }
 
+int window::initImGui() {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window::window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
+    return 1;
+}
+
 int window::init() {
     initGLFW();
     initWindow();
     initOpenGL();
+    initImGui();
 
     return 1;
 }
@@ -95,6 +114,18 @@ void window::refresh() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
+    
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+
+    //ImGui::NewFrame();
+    //test();
+     
+}
+
+void window::render() {
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void window::appInfo() {
@@ -113,6 +144,40 @@ void window::appInfo() {
 }
 
 void window::terminate() {
-
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
+}
+
+ImFont* window::loadFont(const char* path, float size) {
+    ImGuiIO& io = ImGui::GetIO();
+    return io.Fonts->AddFontFromFileTTF(path, size);
+}
+
+int window::readKey(int key) {
+    ImGuiIO& io = ImGui::GetIO();
+    if(io.WantCaptureKeyboard) {
+        return 0;
+    }
+
+    return glfwGetKey(window, key);
+}
+
+int window::readMouseButton(int key) {
+    ImGuiIO& io = ImGui::GetIO();
+    if(io.WantCaptureMouse) {
+        return 0;
+    } 
+
+    return glfwGetMouseButton(window, key);
+}
+
+void window::readMousePos(double* x, double* y) {
+    ImGuiIO& io = ImGui::GetIO();
+    if(io.WantCaptureMouse) {
+        return;
+    } 
+
+    glfwGetCursorPos(window::window, x, y);
 }
