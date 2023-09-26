@@ -9,32 +9,33 @@
 #include <imgui.h>
 
 class camera {
+    private:
+        const float maxScale = 10000;
+        const float minScale = 1.00;
+
     public:
         float left;
         float right;
         float bottom;
         float top;
         
-        float scale = 100;
+        float scale;
+        float speed;
 
-        float speed = 1000.0; // pixels per unit
-        float linearScale = 1000.0;
-
-        const float maxScale = 10000;
-        const float minScale = 1.00;
-
-        glm::mat4 view();
-
-        glm::vec2 pos = glm::vec2(0.0f, 0.0f);
-        glm::mat4 projection();
+        glm::vec2 pos;
+        
+        inline glm::mat4 view();
+        inline glm::mat4 projection();
 
         void InputLoop(float deltaTime);
         void appInfo();
-
         void getMousePositionRelative();
+
+        camera()
+            : scale(100), speed(1000.0), pos(0.0f, 0.0f) {}
 };
 
-glm::mat4 camera::projection() {
+inline glm::mat4 camera::projection() {
     /*
     return glm::perspective(
     glm::radians(FOV), 
@@ -56,7 +57,7 @@ glm::mat4 camera::projection() {
     
 }
 
-glm::mat4 camera::view() {
+inline glm::mat4 camera::view() {
     glm::mat4 view = glm::lookAt(glm::vec3(pos, 1.0f), glm::vec3(pos, 1.0f)+glm::vec3(0.0, 0.0, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     return view;

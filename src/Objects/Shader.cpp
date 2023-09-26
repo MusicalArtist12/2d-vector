@@ -9,6 +9,25 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <vector>
+
+struct vertex {
+    float pos[3];
+    float rgba[4];
+
+    vertex() {}
+
+    vertex(float x, float y, float r, float g, float b, float a) {
+        pos[0] = x;
+        pos[1] = y;
+        pos[2] = 0.0;
+
+        rgba[0] = r;
+        rgba[1] = g;
+        rgba[2] = b;
+        rgba[3] = a;
+    }
+};
 
 class shader {
     public:
@@ -27,7 +46,60 @@ class shader {
         void setUniform4f(const std::string& name, glm::vec4 val);
 
         shader(const char* vertex_path, const char* fragment_path);
+
+        void drawMesh(GLuint VAO, int size, glm::mat4 model);
+        void setView(glm::mat4 view, glm::mat4 projection);
+
+        void generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, vertex* vertices, int vSize, GLuint* index, int iSize);
 };
+
+void shader::drawMesh(GLuint VAO, int size, glm::mat4 model) {
+    bind();
+
+    setUniform4fv("model", model);
+
+    glBindVertexArray(VAO);
+
+    glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, 0);
+
+    unbind();
+}
+
+void shader::setView(glm::mat4 view, glm::mat4 projection) {
+    bind();
+
+    setUniform4fv("view", view);
+    setUniform4fv("projection", projection);
+
+    unbind();
+}
+
+void shader::generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, vertex* vertices, int vSize, GLuint* index, int iSize) {
+    glGenVertexArrays(1, VAO); 
+
+    glBindVertexArray(*VAO);
+
+        glGenBuffers(1, VBO);
+        glGenBuffers(1, EBO);
+
+        // VBO
+        glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+        glBufferData(GL_ARRAY_BUFFER, (vSize * sizeof(vertex)), vertices, GL_STATIC_DRAW);
+        // type of buffer, size of buffer we want to pass, data, how its managed
+        
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (iSize * sizeof(GLuint)), index, GL_STATIC_DRAW);
+
+        // Position
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        // vertex rgba
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(3* sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0); 
+}
 
 void shader::bind() {
     glEnable(GL_DEPTH_TEST);

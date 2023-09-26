@@ -78,7 +78,12 @@
         "charconv": "cpp",
         "format": "cpp",
         "span": "cpp",
-        "stdfloat": "cpp"
+        "stdfloat": "cpp",
+        "csignal": "cpp",
+        "strstream": "cpp",
+        "source_location": "cpp",
+        "ranges": "cpp",
+        "*.ipp": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

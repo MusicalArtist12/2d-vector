@@ -15,25 +15,26 @@ namespace render {
     shader* activeShader;
     camera* activeCamera;
 
-    void updateCamera();
-    void drawMesh(mesh& Mesh, glm::mat4 model);
+    inline void updateCamera();
+    inline void drawMesh(mesh* Mesh, glm::mat4& model);
+    inline void generateBuffer(mesh* Mesh);
+    inline void bind();
 }
 
-void render::updateCamera() {
+inline void render::updateCamera() {
+    activeShader->setView(activeCamera->view(), activeCamera->projection());
+}
+
+inline void render::drawMesh(mesh* Mesh, glm::mat4& model) {
+    activeShader->drawMesh(Mesh->VAO, Mesh->index.size(), model);
+}
+
+inline void render::generateBuffer(mesh* Mesh) {
+    activeShader->generateBuffer(&Mesh->VAO, &Mesh->VBO, &Mesh->EBO, Mesh->vertices.data(), Mesh->vertices.size(), Mesh->index.data(), Mesh->index.size());
+    Mesh->generated = true;
+}
+
+inline void render::bind() {
     activeShader->bind();
-    activeShader->setUniform4fv("view", activeCamera->view());
-    activeShader->setUniform4fv("projection", activeCamera->projection());
 }
-
-void render::drawMesh(mesh& Mesh, glm::mat4 model) {
-    activeShader->bind();
-    activeShader->setUniform4fv("model", model);
-
-    glBindVertexArray(Mesh.VAO);
-    
-    glDrawElements(GL_TRIANGLES, Mesh.index.size(), GL_UNSIGNED_INT, 0);
-
-    glBindVertexArray(0);
-}
-
  

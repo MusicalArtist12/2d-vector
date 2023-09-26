@@ -7,20 +7,20 @@
 
 #include "Utils.cpp"
 
-// Window Engine
 #include "WindowEngine.cpp" // Layer between OS and code
 
-// Objects
+#include "Objects/Shader.cpp"
 #include "Objects/Camera.cpp"
-#include "Objects/2DObject.cpp"
+#include "Objects/Mesh.cpp"
 
+#include "Objects/PhysObject.cpp"
+
+#include "RenderEngine.cpp"
 #include "PhysicsEngine.cpp"
 
-// Render Engine
-#include "RenderEngine.cpp" // Translation layer between specific shader code
+#include "WorldEngine.cpp"
 
 std::vector<vertex> mesh0_vertices = {
-    
     vertex(-1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f),
     vertex(-1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f),
     vertex(1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f),
@@ -32,8 +32,6 @@ std::vector<GLuint> mesh0_index = {
     0, 3, 2
 };
 
-
-
 void loop();
 
 int main() {
@@ -42,19 +40,9 @@ int main() {
     window::loadFont("assets/fonts/SourceCodePro-Regular.otf", 32);
 
     mesh mesh0(mesh0_vertices, mesh0_index);
+    physObject myObject(&mesh0);
 
-    physObject myObject(&mesh0, "rainbow cube");
-    physics::addItem(myObject);
-
-    myObject.id = "rainbow cube B";
-    physics::addItem(myObject);
-
-    myObject.id = "rainbow cube C";
-    physics::addItem(myObject);
-
-    physObject& N = physics::worldObjects.getItem("rainbow cube B");
-    N.objMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, 5.0f, 0.0f));
-
+    world::addItem(myObject, "rainbow cube");
 
     render::activeShader = new shader("assets/shaders/gen.vert", "assets/shaders/gen.frag");
     render::activeCamera = new camera;
@@ -71,23 +59,22 @@ glm::vec3 background_color(0.0f, 0.0f, 0.0f);
 void loop() {
     
     while(!glfwWindowShouldClose(window::window)) {
+        render::bind();
 
-        render::activeShader->bind();
-        // check for changes
         window::refresh();
         ImGui::NewFrame();
 
         glClearColor(background_color[0], background_color[1], background_color[2], 1.0f);  
+        
         render::updateCamera();
         render::activeCamera->InputLoop(window::deltaTime);
-
         render::activeCamera->getMousePositionRelative();
 
-        physics::render();
+        world::update();
         
         render::activeCamera->appInfo();
         window::appInfo();
-        physics::appInfo();
+
         window::render();
         
     }

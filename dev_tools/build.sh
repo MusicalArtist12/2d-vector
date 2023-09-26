@@ -1,9 +1,9 @@
 #! /bin/sh
 
 cd ..
-rm -rf build/binary/bin
-mkdir build/binary/bin 
-cp -r src/bin build/binary/
+rm -rf build/binary/assets
+mkdir build/binary/assets
+cp -r src/assets build/binary/
 
 cd build 
 

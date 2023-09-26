@@ -14,6 +14,9 @@ namespace window {
     unsigned int width = 1920;
     unsigned int height = 1080;
 
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
+
     char title[] = "Title";
 
     GLFWwindow* window;
@@ -41,9 +44,6 @@ namespace window {
     void readMousePos(double* x, double* y);
 
     // runtime 
-    float deltaTime = 0.0f;
-    float lastFrame = 0.0f;
-
     void updateClock() {
         float currentFrame = glfwGetTime(); // glfwGetTIme returns seconds
         deltaTime = currentFrame - lastFrame;
