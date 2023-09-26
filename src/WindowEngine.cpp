@@ -39,6 +39,16 @@ namespace window {
     int readKey(int key);
     int readMouseButton(int key);
     void readMousePos(double* x, double* y);
+
+    // runtime 
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
+
+    void updateClock() {
+        float currentFrame = glfwGetTime(); // glfwGetTIme returns seconds
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;  
+    }
 }
 
 void window::framebuffer_size_callback(GLFWwindow* window, int w, int h) {
@@ -121,6 +131,7 @@ void window::refresh() {
 }
 
 void window::render() {
+    updateClock();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
@@ -129,7 +140,7 @@ void window::appInfo() {
     static bool on = true;
     ImGui::Begin("Window Info", &on);
 
-        std::string cl = "ClockRate: " + std::to_string(physics::deltaTime);
+        std::string cl = "ClockRate: " + std::to_string(deltaTime);
         std::string wh = "Window Height:" + std::to_string(window::height);
         std::string ww = "Window Width: " + std::to_string(window::width);
 

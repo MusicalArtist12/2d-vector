@@ -34,6 +34,7 @@ target_link_directories(a.out
 target_link_libraries(a.out 
     glfw
     imgui
+    glm
 )
 
 

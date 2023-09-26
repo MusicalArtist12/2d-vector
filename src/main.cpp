@@ -7,20 +7,20 @@
 
 #include "Utils.cpp"
 
-// Physics Engine
-#include "PhysicsEngine.cpp"
-
 // Window Engine
 #include "WindowEngine.cpp" // Layer between OS and code
 
 // Objects
 #include "Objects/Camera.cpp"
-#include "Objects/Mesh.cpp"
+#include "Objects/2DObject.cpp"
+
+#include "PhysicsEngine.cpp"
 
 // Render Engine
 #include "RenderEngine.cpp" // Translation layer between specific shader code
 
 std::vector<vertex> mesh0_vertices = {
+    
     vertex(-1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f),
     vertex(-1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f),
     vertex(1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f),
@@ -32,19 +32,31 @@ std::vector<GLuint> mesh0_index = {
     0, 3, 2
 };
 
-mesh* meshptr; // temp, located in global for loop()
+
 
 void loop();
 
 int main() {
     window::init();
 
-    window::loadFont("bin/fonts/SourceCodePro-Regular.otf", 32);
+    window::loadFont("assets/fonts/SourceCodePro-Regular.otf", 32);
 
     mesh mesh0(mesh0_vertices, mesh0_index);
-    meshptr = &mesh0;
 
-    render::activeShader = new shader("bin/shaders/gen.vert", "bin/shaders/gen.frag");
+    physObject myObject(&mesh0, "rainbow cube");
+    physics::addItem(myObject);
+
+    myObject.id = "rainbow cube B";
+    physics::addItem(myObject);
+
+    myObject.id = "rainbow cube C";
+    physics::addItem(myObject);
+
+    physObject& N = physics::worldObjects.getItem("rainbow cube B");
+    N.objMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, 5.0f, 0.0f));
+
+
+    render::activeShader = new shader("assets/shaders/gen.vert", "assets/shaders/gen.frag");
     render::activeCamera = new camera;
 
     loop();
@@ -59,7 +71,6 @@ glm::vec3 background_color(0.0f, 0.0f, 0.0f);
 void loop() {
     
     while(!glfwWindowShouldClose(window::window)) {
-        physics::updateClock();
 
         render::activeShader->bind();
         // check for changes
@@ -68,13 +79,17 @@ void loop() {
 
         glClearColor(background_color[0], background_color[1], background_color[2], 1.0f);  
         render::updateCamera();
-        render::activeCamera->InputLoop(physics::deltaTime);
+        render::activeCamera->InputLoop(window::deltaTime);
 
-        render::drawMesh(*meshptr, glm::mat4(1.0f));
+        render::activeCamera->getMousePositionRelative();
 
+        physics::render();
+        
         render::activeCamera->appInfo();
         window::appInfo();
+        physics::appInfo();
         window::render();
+        
     }
 }
 

@@ -17,10 +17,11 @@ class camera {
         
         float scale = 100;
 
-        float speed = 1000.0;
+        float speed = 1000.0; // pixels per unit
+        float linearScale = 1000.0;
 
         const float maxScale = 10000;
-        const float minScale = 0.100;
+        const float minScale = 1.00;
 
         glm::mat4 view();
 
@@ -29,6 +30,8 @@ class camera {
 
         void InputLoop(float deltaTime);
         void appInfo();
+
+        void getMousePositionRelative();
 };
 
 glm::mat4 camera::projection() {
@@ -74,18 +77,20 @@ void camera::InputLoop(float deltaTime) {
         pos += glm::vec2(speed/scale, 0.0) * deltaTime;
     }
     if(window::readKey(GLFW_KEY_PAGE_UP) == GLFW_PRESS && scale < maxScale) {
-        scale += speed * deltaTime;
+        scale += (speed * scale * 0.001) * deltaTime;
 
         if(scale > maxScale) {
             scale = maxScale;
         }
+
     }
     if(window::readKey(GLFW_KEY_PAGE_DOWN) == GLFW_PRESS && scale > minScale) {
-        scale -= speed * deltaTime;
+        scale -= (speed * scale * 0.001) * deltaTime;
 
         if(scale < minScale) {
             scale = minScale;
         }
+
     }
 
     static bool next_cycle = false;
@@ -95,8 +100,8 @@ void camera::InputLoop(float deltaTime) {
 
         window::readMousePos(&x_f, &y_f);
 
-        double deltaX = (x_f - x_i) * (1/scale);
-        double deltaY = (y_f - y_i) * (1/scale);
+        double deltaX = (x_f - x_i) / scale; // window width/height cancel out
+        double deltaY = (y_f - y_i) / scale;
 
         pos.x -= deltaX;
         pos.y += deltaY;
@@ -111,16 +116,32 @@ void camera::InputLoop(float deltaTime) {
     }    
 }
 
+void camera::getMousePositionRelative() {
+    double x, y;
+    window::readMousePos(&x, &y);
+
+    double x_pos = (x / scale);
+    double y_pos = (y / scale);
+
+    //std::cout << "MOUSE x: " << (x_pos - window::width/(2 * scale)) + pos.x << std::endl;
+    //std::cout << "MOUSE y: " << pos.y - (y_pos - window::height/(2 * scale)) << std::endl;
+}
+
 void camera::appInfo() {
     static bool on = true;
+
     ImGui::Begin("Camera Info", &on);
 
-        std::string cp = "Camera Pos: (" + std::to_string(pos.x) + ", " + std::to_string(pos.y) + ")";
+    float curPos[] = {pos[0], pos[1]};
 
-        ImGui::Text(cp.c_str());
 
-        ImGui::SliderFloat("Camera Scale", &scale, minScale, maxScale);
-        ImGui::SliderFloat("Camera Speed", &speed, 500, 2000);
+    ImGui::SliderFloat2("Camera Position", curPos, -1000, 1000);
+    ImGui::SliderFloat("Camera Scale", &scale, minScale, maxScale);
+    ImGui::SliderFloat("Camera Speed", &speed, 500, 2000);
+
+
+    pos[0] = curPos[0];
+    pos[1] = curPos[1];
 
     ImGui::End();
 }

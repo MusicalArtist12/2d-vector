@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 
+// x, y, r, g, b, a
 struct vertex {
     float pos[2];
     float rgba[4];
