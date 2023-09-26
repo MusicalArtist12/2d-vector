@@ -139,14 +139,9 @@ void window::render() {
 void window::appInfo() {
     static bool on = true;
     ImGui::Begin("Window Info", &on);
-
-        std::string cl = "ClockRate: " + std::to_string(deltaTime);
-        std::string wh = "Window Height:" + std::to_string(window::height);
-        std::string ww = "Window Width: " + std::to_string(window::width);
-
-        ImGui::Text(cl.c_str());
-        ImGui::Text(ww.c_str());
-        ImGui::Text(wh.c_str());
+        ImGui::Text("Clock Rate: %3f", deltaTime);
+        ImGui::Text("Height: %3u", height);
+        ImGui::Text("Width: %3u", width);
 
     ImGui::End();
 }

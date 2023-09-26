@@ -5,7 +5,7 @@
 #include <glad/gl.h>     
 #include <GLFW/glfw3.h>  
 
-#include "Utils.cpp"
+#include "Utils/Utils.cpp"
 
 #include "WindowEngine.cpp" // Layer between OS and code
 

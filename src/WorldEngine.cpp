@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dictionary.cpp"
+#include "Utils/Dictionary.cpp"
 
 #include "Objects/Shader.cpp"
 #include "Objects/Mesh.cpp"
