@@ -4,7 +4,6 @@
 
 #include "physicsEngine/PhysicsEngine.h"
 #include "gfxEngine/RenderEngine.h"
-#include "utils/Dictionary.h"
 
 namespace world {
     dictionary<physObject> objectTable;   

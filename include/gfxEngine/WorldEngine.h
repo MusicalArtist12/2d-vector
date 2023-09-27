@@ -1,7 +1,7 @@
 #ifndef WORLDENGINE_H
 #define WORLDENGINE_H
 
-#include "utils/Dictionary.h"
+#include "utils/Dictionary_impl.h"
 #include "physicsEngine/PhysObject.h"
 
 #include <string>

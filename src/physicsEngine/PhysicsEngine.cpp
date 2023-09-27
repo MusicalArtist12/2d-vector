@@ -12,7 +12,7 @@ namespace physics {
 void physics::calculatePhysics(physObject& obj) {
     float* pos[] = { &obj.myMatrix[3][0], &obj.myMatrix[3][1] };
     float* vel[] = { &obj.vel.x, &obj.vel.y };
-    float* accel[] = { &obj.accel.x, &obj.accel.y };
+    //float* accel[] = { &obj.accel.x, &obj.accel.y };
     
     float tmp_accel = obj.accel.y;
 

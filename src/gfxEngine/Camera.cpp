@@ -95,8 +95,8 @@ void camera::getMousePositionRelative() {
     double x, y;
     window::readMousePos(&x, &y);
 
-    double x_pos = (x / scale);
-    double y_pos = (y / scale);
+    //double x_pos = (x / scale);
+    //double y_pos = (y / scale);
 
     //std::cout << "MOUSE x: " << (x_pos - window::width/(2 * scale)) + pos.x << std::endl;
     //std::cout << "MOUSE y: " << pos.y - (y_pos - window::height/(2 * scale)) << std::endl;

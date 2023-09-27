@@ -1,3 +1,5 @@
+include(CMakePrintHelpers)
+
 cmake_minimum_required(VERSION 3.25.1)
 
 project(2D_PHYSICS_ENGINE VERSION 0.1)
@@ -14,19 +16,6 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/external/glfw)
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/glm)
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/imgui)
 
-add_library(utils
-    src/utils/Dictionary.cpp 
-    src/utils/LinkedList.cpp
-)
-
-target_include_directories(utils
-PUBLIC
-    ${PROJECT_SOURCE_DIR}/include/
-    ${PROJECT_SOURCE_DIR}/external/glad/include/
-    ${PROJECT_SOURCE_DIR}/external/glfw/include/
-    ${PROJECT_SOURCE_DIR}/external/glm/include/
-    ${PROJECT_SOURCE_DIR}/external/imgui/include/
-)
 
 
 add_library(gfxEngine
@@ -71,9 +60,9 @@ PUBLIC
     ${PROJECT_SOURCE_DIR}/external/imgui/include/
 )
 
-target_link_libraries(gfxEngine utils glad glfw glm)
+target_link_libraries(gfxEngine glad glfw glm)
 target_link_libraries(glCore glad glfw glm)
-target_link_libraries(physicsEngine glm utils)
+target_link_libraries(physicsEngine glm)
 
 add_executable(a.out src/main.cpp)
 
@@ -86,7 +75,7 @@ PUBLIC
     ${PROJECT_SOURCE_DIR}/external/imgui/include/
 )
 
-target_link_libraries(a.out utils gfxEngine glCore physicsEngine imgui)
+target_link_libraries(a.out gfxEngine glCore physicsEngine imgui)
 
 
 
