@@ -5,20 +5,21 @@
 #include <glad/gl.h>     
 #include <GLFW/glfw3.h>  
 
-#include "Utils/Utils.cpp"
+#include "utils/Utils.h"
+#include "utils/Dictionary.h"
 
-#include "WindowEngine.cpp" // Layer between OS and code
+#include "glCore/WindowEngine.h" // Layer between OS and code
 
-#include "Objects/Shader.cpp"
-#include "Objects/Camera.cpp"
-#include "Objects/Mesh.cpp"
+#include "glCore/Shader.h"
+#include "gfxEngine/Camera.h"
+#include "glCore/Mesh.h"
 
-#include "Objects/PhysObject.cpp"
+#include "physicsEngine/PhysObject.h"
 
-#include "RenderEngine.cpp"
-#include "PhysicsEngine.cpp"
+#include "gfxEngine/RenderEngine.h"
+#include "physicsEngine/PhysicsEngine.h"
 
-#include "WorldEngine.cpp"
+#include "gfxEngine/WorldEngine.h"
 
 std::vector<vertex> mesh0_vertices = {
     vertex(-1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f),
@@ -35,16 +36,18 @@ std::vector<GLuint> mesh0_index = {
 void loop();
 
 int main() {
+    std::cout << "novel!" << std::endl;
+    
     window::init();
 
-    window::loadFont("assets/fonts/SourceCodePro-Regular.otf", 32);
+    window::loadFont("data/fonts/SourceCodePro-Regular.otf", 32);
 
     mesh mesh0(mesh0_vertices, mesh0_index);
     physObject myObject(&mesh0);
 
     world::addItem(myObject, "rainbow cube");
 
-    render::activeShader = new shader("assets/shaders/gen.vert", "assets/shaders/gen.frag");
+    render::activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
     render::activeCamera = new camera;
 
     loop();
@@ -59,8 +62,6 @@ glm::vec3 background_color(0.0f, 0.0f, 0.0f);
 void loop() {
     
     while(!glfwWindowShouldClose(window::window)) {
-        render::bind();
-
         window::refresh();
         ImGui::NewFrame();
 
