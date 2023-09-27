@@ -1,5 +1,3 @@
-include(CMakePrintHelpers)
-
 cmake_minimum_required(VERSION 3.25.1)
 
 project(2D_PHYSICS_ENGINE VERSION 0.1)
@@ -15,8 +13,6 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/external/glad)
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/glfw)
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/glm)
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/imgui)
-
-
 
 add_library(gfxEngine
     src/gfxEngine/Camera.cpp 
@@ -34,6 +30,7 @@ PUBLIC
 )
 
 add_library(physicsEngine
+    src/physicsEngine/PhysObject.cpp
     src/physicsEngine/PhysicsEngine.cpp
 )
 

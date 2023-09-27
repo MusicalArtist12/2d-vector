@@ -14,7 +14,7 @@ namespace render {
     extern camera* activeCamera;
 
     void updateCamera();
-    void drawMesh(mesh* Mesh, glm::mat4& model);
+    void drawMesh(mesh* Mesh, glm::mat4 model);
     void generateBuffer(mesh* Mesh);
 }
 

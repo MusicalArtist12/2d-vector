@@ -10,7 +10,7 @@ void render::updateCamera() {
     activeShader->setView(activeCamera->view(), activeCamera->projection());
 }
 
-void render::drawMesh(mesh* Mesh, glm::mat4& model) {
+void render::drawMesh(mesh* Mesh, glm::mat4 model) {
     activeShader->bind();
     activeShader->drawMesh(Mesh->VAO, Mesh->index.size(), model);
 }

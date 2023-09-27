@@ -13,16 +13,19 @@
 class physObject {
     public: 
         mesh* myMesh;
-        glm::mat4 myMatrix = glm::mat4(1.0f);
 
+        glm::vec3 pos = glm::vec3(0.0f);
         glm::vec3 vel = glm::vec3(0.0f);
         glm::vec3 accel = glm::vec3(0.0f);
+        
         
         physObject(mesh* shape)
             : myMesh(shape) {}
 
         physObject(const physObject& obj)
-            : myMesh(obj.myMesh), myMatrix(obj.myMatrix), vel(obj.vel), accel(obj.accel) {}
+            : myMesh(obj.myMesh), pos(obj.pos), vel(obj.vel), accel(obj.accel) {}
+
+        glm::mat4 modelMatrix();
 };
 
 #endif

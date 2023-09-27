@@ -31,6 +31,6 @@ void world::update() {
             render::generateBuffer(iObject.myMesh);
         }
 
-        render::drawMesh(iObject.myMesh, iObject.myMatrix);
+        render::drawMesh(iObject.myMesh, iObject.modelMatrix());
     }
 }

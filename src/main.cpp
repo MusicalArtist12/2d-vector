@@ -5,17 +5,7 @@
 #include <glad/gl.h>     
 #include <GLFW/glfw3.h>  
 
-#include "utils/Utils.h"
-#include "utils/Dictionary.h"
-
 #include "glCore/WindowEngine.h" // Layer between OS and code
-
-#include "glCore/Shader.h"
-#include "gfxEngine/Camera.h"
-#include "glCore/Mesh.h"
-
-#include "physicsEngine/PhysObject.h"
-
 #include "gfxEngine/RenderEngine.h"
 #include "physicsEngine/PhysicsEngine.h"
 
