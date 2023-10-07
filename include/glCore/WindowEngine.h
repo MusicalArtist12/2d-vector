@@ -5,7 +5,6 @@
 #include <GLFW/glfw3.h> 
 
 #include <imgui.h>
-
 #include <iostream>
 
 namespace window {
@@ -24,8 +23,6 @@ namespace window {
     int initImGui();
     int init();
 
-    void appInfo();
- 
     void refresh();
     void render();
     void terminate();
@@ -36,6 +33,10 @@ namespace window {
     void readMousePos(double* x, double* y);
 
     void updateClock();
+
+    #ifdef WINDOW_APP
+        void appInfo();
+    #endif
 }
 
 #endif

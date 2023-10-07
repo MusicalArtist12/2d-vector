@@ -4,6 +4,8 @@
 #include "utils/Dictionary_impl.h"
 #include "physicsEngine/PhysObject.h"
 
+#include <imgui.h>
+
 #include <string>
 
 namespace world {
@@ -15,6 +17,10 @@ namespace world {
     void addItem(physObject obj, std::string id);
 
     void update();
+
+    #ifdef WORLD_APP
+        void appInfo();
+    #endif 
 };
 
 #endif

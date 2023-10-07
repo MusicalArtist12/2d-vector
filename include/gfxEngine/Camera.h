@@ -28,10 +28,13 @@ class camera {
         glm::mat4 projection();
 
         void InputLoop(float deltaTime);
-        void appInfo();
         void getMousePositionRelative();
 
         camera(): scale(100), speed(1000.0), pos(0.0f, 0.0f) {}
+
+        #ifdef CAMERA_APP
+            void appInfo();
+        #endif
 };
 
 #endif

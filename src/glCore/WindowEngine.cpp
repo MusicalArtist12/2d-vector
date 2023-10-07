@@ -102,16 +102,6 @@ void window::render() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void window::appInfo() {
-    static bool on = true;
-    ImGui::Begin("Window Info", &on);
-        ImGui::Text("Clock Rate: %3f", deltaTime);
-        ImGui::Text("Height: %3u", height);
-        ImGui::Text("Width: %3u", width);
-
-    ImGui::End();
-}
-
 void window::terminate() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -156,3 +146,4 @@ void window::updateClock() {
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;  
 }
+

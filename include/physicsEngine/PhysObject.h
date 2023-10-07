@@ -26,6 +26,7 @@ class physObject {
             : myMesh(obj.myMesh), pos(obj.pos), vel(obj.vel), accel(obj.accel) {}
 
         glm::mat4 modelMatrix();
+
 };
 
 #endif

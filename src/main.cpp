@@ -1,3 +1,7 @@
+#define CAMERA_APP 1
+#define WINDOW_APP 1
+#define WORLD_APP 1
+
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -8,7 +12,6 @@
 #include "glCore/WindowEngine.h" // Layer between OS and code
 #include "gfxEngine/RenderEngine.h"
 #include "physicsEngine/PhysicsEngine.h"
-
 #include "gfxEngine/WorldEngine.h"
 
 std::vector<vertex> mesh0_vertices = {
@@ -25,25 +28,21 @@ std::vector<GLuint> mesh0_index = {
 
 void loop();
 
-int main() {
-    std::cout << "novel!" << std::endl;
-    
-    window::init();
-
-    window::loadFont("data/fonts/SourceCodePro-Regular.otf", 32);
-
+int main() { 
     mesh mesh0(mesh0_vertices, mesh0_index);
     physObject myObject(&mesh0);
 
     world::addItem(myObject, "rainbow cube");
 
+    window::init();
+    window::loadFont("data/fonts/SourceCodePro-Regular.otf", 32);
+
     render::activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
     render::activeCamera = new camera;
-
+    
     loop();
 
     window::terminate();
-    
     return 0;
 }
 
@@ -65,9 +64,53 @@ void loop() {
         
         render::activeCamera->appInfo();
         window::appInfo();
+        world::appInfo();
 
         window::render();
         
     }
 }
 
+void camera::appInfo() {
+    static bool on = true;
+
+    ImGui::Begin("Camera Info", &on);
+
+    float curPos[] = {pos[0], pos[1]};
+
+    ImGui::SliderFloat2("Camera Position", curPos, -1000, 1000);
+    ImGui::SliderFloat("Camera Scale", &scale, minScale, maxScale);
+    ImGui::SliderFloat("Camera Speed", &speed, 500, 2000);
+
+    pos[0] = curPos[0];
+    pos[1] = curPos[1];
+
+    ImGui::End();
+}
+
+void window::appInfo() {
+    static bool on = true;
+
+    ImGui::Begin("Window Info", &on);
+        ImGui::Text("Clock Rate: %3f", deltaTime);
+        ImGui::Text("Height: %3u", height);
+        ImGui::Text("Width: %3u", width);
+
+    ImGui::End();
+}
+
+void world::appInfo() {
+    static bool on = true;
+
+    ImGui::Begin("World Info", &on);
+
+    static bool* worldItems = new bool[tableSize];
+
+
+    for(int i = 0; i < tableSize; i++) {
+        ImGui::Checkbox(objectNames[i].c_str(), &worldItems[i]);
+    }
+
+    ImGui::End();
+
+}

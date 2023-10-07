@@ -102,21 +102,3 @@ void camera::getMousePositionRelative() {
     //std::cout << "MOUSE y: " << pos.y - (y_pos - window::height/(2 * scale)) << std::endl;
 }
 
-void camera::appInfo() {
-    static bool on = true;
-
-    ImGui::Begin("Camera Info", &on);
-
-    float curPos[] = {pos[0], pos[1]};
-
-
-    ImGui::SliderFloat2("Camera Position", curPos, -1000, 1000);
-    ImGui::SliderFloat("Camera Scale", &scale, minScale, maxScale);
-    ImGui::SliderFloat("Camera Speed", &speed, 500, 2000);
-
-
-    pos[0] = curPos[0];
-    pos[1] = curPos[1];
-
-    ImGui::End();
-}
