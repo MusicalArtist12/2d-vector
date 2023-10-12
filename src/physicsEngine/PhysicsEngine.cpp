@@ -31,6 +31,8 @@ void physics::calculateForces(physObject& obj) {
         
         if(obj.vel.y < 0.0f) obj.vel.y = 0.0f;
 
+        if(obj.pos.y < 0.0f) obj.pos.y = 0.0f;
+
     } else {
         normalFloor = glm::vec3(0.0f);
     }

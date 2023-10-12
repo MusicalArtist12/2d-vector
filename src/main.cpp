@@ -15,15 +15,16 @@ void loop();
 
 dictionary<bool *> appBools(26);
 
+void appApp();
 void cameraApp(camera* myCam);
 void windowApp();
 void worldApp();
 void objectApp(physObject& myObject, std::string id);
 
 int main() { 
-    mesh* triangle = new mesh(genPolygon(3));
+    mesh* circle = new mesh(genPolygon(100));
 
-    world::objectTable.add("triangle", physObject(triangle)).pos = glm::vec3(0.0, 5.0, 0.0);
+    world::objectTable.add("circle", physObject(circle)).pos = glm::vec3(0.0, 5.0, 0.0);
 
     window::init();
     window::loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
@@ -50,15 +51,34 @@ void loop() {
 
         render::activeCamera->InputLoop(window::deltaTime);
         
+        appApp();
         cameraApp(render::activeCamera);
         windowApp();
         worldApp();
+
+        for(int i = 0; i < world::tableSize; i++) {
+            objectApp(world::objectTable.entry(world::objectNames[i]), world::objectNames[i]);
+        }
 
 
         world::update();
 
         window::render();  
     }
+}
+
+void appApp() {
+    ImGui::Begin("Widgets");
+
+    std::vector<std::string> names = appBools.nameList(); 
+    for(int i = 0; i < names.size(); i++) {
+
+        bool* myBool = appBools.add(names[i], new bool(false));
+
+        ImGui::Checkbox(names[i].c_str(), myBool);
+    }
+
+    ImGui::End();
 }
 
 void cameraApp(camera* myCam) {
@@ -81,6 +101,8 @@ void windowApp() {
 
     ImGui::Begin("Window Info", run);
         ImGui::Text("Clock Rate: %3f", window::deltaTime);
+        float framerate = 1.0f / window::deltaTime;
+        ImGui::Text("Framerate: %3f", framerate);
         ImGui::Text("Height: %3u", window::height);
         ImGui::Text("Width: %3u", window::width);
 
@@ -94,11 +116,14 @@ void worldApp() {
 
     ImGui::Begin("World Info", run);
 
+    ImGui::Text("Physics Settings");
     ImGui::InputFloat("Gravity", &physics::grav);
     ImGui::Checkbox("Use Physics", &world::usePhysics);
+    ImGui::Text("");
+    ImGui::Text("Number of Objects: %i", world::tableSize);
 
     for(int i = 0; i < world::tableSize; i++) {
-        std::string appName = world::objectNames[i] + " App";
+        std::string appName = "Object: " + world::objectNames[i];
 
         bool* myBool = appBools.add(appName, new bool(false));
 
@@ -107,13 +132,11 @@ void worldApp() {
 
     ImGui::End();
 
-    for(int i = 0; i < world::tableSize; i++) {
-        objectApp(world::objectTable.entry(world::objectNames[i]), world::objectNames[i]);
-    }
+
 }
 
 void objectApp(physObject& myObject, std::string id) {
-    std::string appName = id + " App";
+    std::string appName = "Object: " + id;
 
     bool* run = appBools.add(appName, new bool(true));
 
