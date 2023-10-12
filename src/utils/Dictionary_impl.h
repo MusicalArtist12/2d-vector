@@ -1,205 +1,145 @@
-#include "utils/Dictionary.h"
+#include "Dictionary.h"
 
 #include <iostream>
 
-template <typename T> 
-inline bool linkedList<T>::isEmpty() {
-    if(head == nullptr) return true;
-    else return false;
+template <typename T>
+bool linkedList<T>::isEmpty() {
+    return (head == nullptr);
 }
 
-template <typename T> 
-void linkedList<T>::push(node<T>* n) {
-    if(isEmpty()) head = n;
-    else {
-        n->next = head;
-        head = n;
-    }
-}
-
-template <typename T> 
+template <typename T>
 int linkedList<T>::size() {
-    node<T>* n = head;
-    int idx = 0;
+    if(isEmpty()) return 0;
 
-    if(isEmpty()) return idx;
-
-    while(n != nullptr) {
-        idx++;
-        n = n->next;
-    }
-
-    return idx;
-}
-
-template <typename T> 
-node<T>* linkedList<T>::getItem(std::string id) {
-    if(isEmpty()) return nullptr;
-
+    int count = 1;
     node<T>* ptr = head;
-    while(ptr->name != id) {
-        
-        if(ptr->next != nullptr) {
-            ptr = ptr->next;
-        } 
-
-        else {
-            return nullptr;
-        }
-    }
-
-    return ptr;
-}
-
-template <typename T> 
-T* linkedList<T>::pullItem(std::string id) {
-    if(isEmpty()) return nullptr;
-
-    node<T>* ptr = head;
-
-    if(ptr->name == id) {
-        if(ptr->next == nullptr) {
-            head = nullptr;
-        } else {
-            head = ptr->next;
-        }
-
-        T* myValue = new T(ptr->value);
-        delete ptr; 
-
-        return myValue;
-    } 
-
-    if(ptr->next == nullptr) {
-        return nullptr;
-    }
 
     while(ptr->next != nullptr) {
-        node<T>* tmp = ptr->next;
-
-        if(tmp->name == id) {
-            T* myValue = new T(tmp->value);
-            ptr->next = tmp->next;
-            delete tmp; 
-
-            return myValue;
-        }
-
+        count++;
         ptr = ptr->next;
     }
 
-    return nullptr;
+    return count;
 }
 
 template <typename T> 
-int dictionary<T>::hash(std::string str) {
+T linkedList<T>::remove(std::string name) {
+    if(isEmpty()) throw std::invalid_argument("object does not exist");
 
-    int hashValue = 26 * ((int)str[0] - 65); 
+    node<T>* ptr = head;
 
-    if(str.length() > 1)
-        hashValue += ((int)str[1] - 65); 
+    if(ptr->name == name) {
+        head = nullptr;
 
-    hashValue = hashValue % length;
+        T temp = ptr->value;
+        delete ptr;
+        return temp;
 
-    return hashValue;
+    } 
+
+    while(ptr->next != nullptr) {
+        node<T>* parent = ptr;
+        ptr = ptr->next;
+
+        if(ptr->name == name) {
+            if(ptr->next == nullptr) parent->next = nullptr;
+            else parent->next = ptr->next;
+
+            T temp = ptr->value;
+            delete ptr;
+            return temp;
+        }
+    } 
+
+    throw std::invalid_argument("object does not exist");
+}
+
+template <typename T> 
+T& linkedList<T>::add(std::string name, T value) {
+    if(isEmpty()) {
+        head = new node<T>(name, value);
+        return head->value;
+    }
+
+    node<T>* ptr = head;
+
+    while(ptr->name != name && ptr->next != nullptr) { 
+        ptr = ptr->next;
+    }
+
+    if(ptr->name == name) return ptr->value;
+
+    ptr->next = new node<T>(name, value);
+    return ptr->next->value;
+}
+
+template <typename T>
+T& linkedList<T>::entry(std::string name) {
+    if(isEmpty()) throw std::invalid_argument("cannot get reference to a non-existant value");
+
+    node<T>* ptr = head;
+    if(ptr->name == name) return ptr->value;
+
+    while(ptr->name != name && ptr->next != nullptr) { 
+        ptr = ptr->next;
+    }
+
+    if(ptr->name == name) return ptr->value;
+
+     throw std::invalid_argument("cannot get reference to a non-existant value");
+}
+
+template <typename T>
+int dictionary<T>::hash(std::string name) {
+    int value = 0;
+
+    for(int i = 0; i < name.length(); i++) {
+        value += name[i];
+    }
+
+    return value % length;
 }
 
 template <typename T>
 int dictionary<T>::size() {
-    int dictionarySize = 0;
-
+    int len = 0;
     for(int i = 0; i < length; i++) {
-        dictionarySize += dict[i].size();
+        if(!dict[i].isEmpty()) len += dict[i].size();
     }
 
-    return dictionarySize;
+    return len;
 }
 
 template <typename T>
-bool dictionary<T>::hasItem(std::string name) {
-    int pos = hash(name);
-
-    node<T>* ptr = dict[pos].getItem(name); 
-
-    if(ptr == nullptr) return false;
-
-    return true;
-    
+T dictionary<T>::remove(std::string name) {
+    return dict[hash(name)].remove(name);
 }
 
 template <typename T>
-void dictionary<T>::addItem(T item, std::string name) {
-    node<T>* ptr; 
-    int count = 0;
-    std::string finalName = name;
-
-    do {
-        ptr = dict[hash(finalName)].getItem(finalName);
-
-        if(ptr != nullptr) {
-            count++;
-            finalName = name + " " + toString(count);
-        } 
-    } while (ptr != nullptr);
-
-    if(finalName != name) {
-        std::cout << "[dictionary]: Item \'" << name << "\' already exists, renaming to \'" << finalName << "\'"<< std::endl;
-        
-    }
-    
-    node<T>* n = new node<T>(item, finalName);
-
-    dict[hash(finalName)].push(n);
+T& dictionary<T>::add(std::string name, T value) {
+    return dict[hash(name)].add(name, value);
 }
 
 template <typename T>
-T& dictionary<T>::getItem(std::string name) {
-    int pos = hash(name);
-
-    node<T>* ptr = dict[pos].getItem(name);
-
-    if(ptr == nullptr) {
-        throw std::invalid_argument("item does not exist");
-    }
-
-    return ptr->value;
+T& dictionary<T>::entry(std::string name) {
+    return dict[hash(name)].entry(name);
 }
 
 template <typename T>
-T dictionary<T>::pullItem(std::string name) {
-    int pos = hash(name);
+std::vector<std::string> dictionary<T>::nameList() {
+    std::vector<std::string> names;
 
-    T* ptr = dict[pos].pullItem(name);
-
-    if(ptr == nullptr) {
-        throw std::invalid_argument("Item does not exist");
-    }
-    
-    T myValue = *ptr;
-    delete ptr;
-
-    return myValue;
-}
-
-template <typename T>
-std::string* dictionary<T>::getArrayOfIDs() {
-    std::string* array = new std::string[size()];
-    
-    int idx = 0;
-    
     for(int i = 0; i < length; i++) {
         if(dict[i].isEmpty()) continue;
-        
-        node<T>* ptr = dict[i].head;
-        while(true) {
-            array[idx] = ptr->name;
 
-            idx++;
-            if(ptr->next == nullptr) break;
+        node<T>* ptr = dict[i].head;
+        names.push_back(ptr->name);
+
+        while(ptr->next != nullptr) {
             ptr = ptr->next;
+            names.push_back(ptr->name);
         }
     }
 
-    return array;
-} 
-
+    return names;
+}

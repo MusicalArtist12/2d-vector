@@ -7,29 +7,30 @@
 
 namespace world {
     dictionary<physObject> objectTable(676);   
-    std::string* objectNames;
+    std::vector<std::string> objectNames;
     
     int tableSize;
     bool usePhysics = false;
 }
 
 void world::addItem(physObject obj, std::string id) {
-    objectTable.addItem(obj, id);
+    objectTable.add(id, obj);
 } 
 
 physObject world::pullItem(std::string id) {
-    return objectTable.pullItem(id);
+    return objectTable.remove(id);
 }
 
 void world::update() {
-    objectNames = objectTable.getArrayOfIDs();
+    objectNames = objectTable.nameList();
     tableSize = objectTable.size();
 
     for(int i = 0; i < tableSize; i++) {
-        physObject& iObject = objectTable.getItem(objectNames[i]);
+        physObject& iObject = objectTable.entry(objectNames[i]);
         
         if(usePhysics) {
-            physics::calculatePhysics(iObject);
+            physics::calculateForces(iObject);
+            physics::calculateMovement(iObject);
         }
 
         render::drawMesh(iObject.myMesh, iObject.modelMatrix());

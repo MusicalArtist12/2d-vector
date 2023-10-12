@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include "utils/Dictionary.h"
+
 class physObject {
     public: 
         mesh* myMesh;
@@ -18,17 +20,24 @@ class physObject {
         glm::vec3 vel = glm::vec3(0.0f);
         glm::vec3 accel = glm::vec3(0.0f);
 
-        // returns whether the object's radius is within the bounds. using obj.pos.k (k == x, y) allows for the use border crossing.
-        bool inXBounds(float x_min, float x_max);
-        bool inYBounds(float y_min, float y_max);
+        float mass;
 
+        glm::vec3 forceSum = glm::vec3(0.0f);
 
-    
+        dictionary<glm::vec3> forceVectors;
+
+        bool xBounds(float x_min, float x_max);
+        bool yBounds(float y_min, float y_max);
+
+        /*  returns 1 if the entire object is to the right of the axis
+            returns 0 if the object crosses the axis
+            returns -1 if the entire object is to the left of the axis
+        */
+        int xAxisRelation(float axis);
+        int yAxisRelation(float axis);
+
         physObject(mesh* shape)
-            : myMesh(shape) {}
-
-        physObject(const physObject& obj)
-            : myMesh(obj.myMesh), pos(obj.pos), vel(obj.vel), accel(obj.accel) {}
+            : myMesh(shape), mass(1.0f), forceVectors(26) {}
 
         glm::mat4 modelMatrix();
 
@@ -39,7 +48,8 @@ namespace physics {
     extern float ground;
     extern float ceiling;
 
-    void calculatePhysics(physObject& obj);
+    void calculateForces(physObject& obj);
+    void calculateMovement(physObject& obj);
 }
 
 #endif

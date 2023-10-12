@@ -10,7 +10,7 @@
 
 namespace world {
     extern dictionary<physObject> objectTable;   
-    extern std::string* objectNames;
+    extern std::vector<std::string> objectNames;
     extern int tableSize;
     extern bool usePhysics;
     

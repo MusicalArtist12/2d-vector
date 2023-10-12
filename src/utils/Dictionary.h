@@ -1,10 +1,8 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
-#include "utils/Utils.h"
-
 #include <string>
-
+#include <vector>
 
 template <typename T>
 struct node {
@@ -12,19 +10,19 @@ struct node {
     std::string name;
     node<T>* next;
 
-    node(T& val, std::string& n): value(val), name(n), next(nullptr) {}
+    node(std::string& n, T val): value(val), name(n), next(nullptr) {}
 };
 
 template <typename T>
 struct linkedList {
     node<T>* head = nullptr;
 
-    inline bool isEmpty();
-    void push(node<T>* n);
+    bool isEmpty();
     int size();
 
-    node<T>* getItem(std::string id);
-    T* pullItem(std::string id);
+    T remove(std::string name);
+    T& add(std::string name, T value);
+    T& entry(std::string name);
 };
 
 template <typename T>
@@ -33,22 +31,17 @@ class dictionary {
         const int length;
 
         linkedList<T>* dict;
-        int hash(std::string str);
+        int hash(std::string name);
 
     public:
+        dictionary(int n): length(n) {dict = new linkedList<T>[length];};
+
         int size();
 
-        bool hasItem(std::string name);
-
-        void addItem(T item, std::string name);
-        T& getItem(std::string name);
-        T pullItem(std::string name);
-        
-        std::string* getArrayOfIDs();
-
-        dictionary(int len): length(len) {
-            dict = new linkedList<T>[length];
-        }
+        T remove(std::string name);   
+        T& add(std::string name, T value); 
+        T& entry(std::string name);
+        std::vector<std::string> nameList();
 };
 
 #endif

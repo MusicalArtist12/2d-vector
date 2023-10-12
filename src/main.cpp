@@ -22,21 +22,11 @@ void objectApp(physObject& myObject, std::string id);
 
 int main() { 
     mesh* triangle = new mesh(genPolygon(3));
-    mesh* square = new mesh(genPolygon(4));
-    mesh* pentagon = new mesh(genPolygon(5));
-    mesh* hexagon = new mesh(genPolygon(6));
-    mesh* circle = new mesh(genPolygon(100));
 
-    world::addItem(physObject(triangle), "triangle");
-    //world::addItem(physObject(square), "square");
-    //world::addItem(physObject(pentagon), "pentagon");
-    //world::addItem(physObject(hexagon), "hexagon");
-    //world::addItem(physObject(circle), "circle");
-
-    //world::objectTable.pullItem("circle");
+    world::objectTable.add("triangle", physObject(triangle)).pos = glm::vec3(0.0, 5.0, 0.0);
 
     window::init();
-    window::loadFont("data/fonts/SourceCodePro-Regular.otf", 16);
+    window::loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
 
     render::activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
     render::activeCamera = new camera;
@@ -64,6 +54,7 @@ void loop() {
         windowApp();
         worldApp();
 
+
         world::update();
 
         window::render();  
@@ -71,11 +62,7 @@ void loop() {
 }
 
 void cameraApp(camera* myCam) {
-    if(!appBools.hasItem("Camera App")) {
-        appBools.addItem(new bool(true), "Camera App");
-    }
-
-    bool* run = appBools.getItem("Camera App");
+    bool* run = appBools.add("Camera App", new bool(true));
     if(!*run) return; 
 
     ImGui::Begin("Camera Info", run);
@@ -89,11 +76,7 @@ void cameraApp(camera* myCam) {
 }
 
 void windowApp() {
-    if(!appBools.hasItem("Window App")) {
-        appBools.addItem(new bool(true), "Window App");
-    }
-    
-    bool* run = appBools.getItem("Window App");
+    bool* run = appBools.add("Window App", new bool(true));
     if(!*run) return;
 
     ImGui::Begin("Window Info", run);
@@ -105,11 +88,7 @@ void windowApp() {
 }
 
 void worldApp() {
-    if(!appBools.hasItem("World App")) {
-        appBools.addItem(new bool(true), "World App");
-    }
-
-    bool* run = appBools.getItem("World App");
+    bool* run = appBools.add("World App", new bool(true));
 
     if(!*run) return;
 
@@ -121,36 +100,30 @@ void worldApp() {
     for(int i = 0; i < world::tableSize; i++) {
         std::string appName = world::objectNames[i] + " App";
 
-        if(!appBools.hasItem(appName.c_str())) {
-            appBools.addItem(new bool(true), appName.c_str());
-        }
+        bool* myBool = appBools.add(appName, new bool(false));
 
-        ImGui::Checkbox(world::objectNames[i].c_str(), appBools.getItem(appName.c_str()));
+        ImGui::Checkbox(world::objectNames[i].c_str(), myBool);
     }
 
     ImGui::End();
 
     for(int i = 0; i < world::tableSize; i++) {
-        objectApp(world::objectTable.getItem(world::objectNames[i]), world::objectNames[i]);
+        objectApp(world::objectTable.entry(world::objectNames[i]), world::objectNames[i]);
     }
 }
 
 void objectApp(physObject& myObject, std::string id) {
     std::string appName = id + " App";
 
-    if(!appBools.hasItem(appName)) {
-        appBools.addItem(new bool(true), appName);
-    }
-
-    bool* run = appBools.getItem(appName);
+    bool* run = appBools.add(appName, new bool(true));
 
     if(!*run) return;
 
     ImGui::Begin(id.c_str(), run);
 
-    ImGui::InputFloat2("Position", (float *)&myObject.pos);
-    ImGui::InputFloat2("Velocity", (float *)&myObject.vel);
-    ImGui::InputFloat2("Acceleration", (float *)&myObject.accel);
+    ImGui::Text("Position: (%f, %f)", myObject.pos.x, myObject.pos.y);
+    ImGui::Text("Velocity: (%f, %f)", myObject.vel.x, myObject.vel.y);
+    ImGui::Text("Acceleration: (%f, %f)", myObject.accel.x, myObject.accel.y);
 
     ImGui::End();
 }
