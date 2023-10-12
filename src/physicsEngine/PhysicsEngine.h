@@ -18,7 +18,11 @@ class physObject {
         glm::vec3 vel = glm::vec3(0.0f);
         glm::vec3 accel = glm::vec3(0.0f);
 
-        bool inBounds(float x, float y);
+        // returns whether the object's radius is within the bounds. using obj.pos.k (k == x, y) allows for the use border crossing.
+        bool inXBounds(float x_min, float x_max);
+        bool inYBounds(float y_min, float y_max);
+
+
     
         physObject(mesh* shape)
             : myMesh(shape) {}
@@ -32,6 +36,8 @@ class physObject {
 
 namespace physics {
     extern float grav;
+    extern float ground;
+    extern float ceiling;
 
     void calculatePhysics(physObject& obj);
 }

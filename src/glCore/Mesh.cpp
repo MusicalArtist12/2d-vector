@@ -3,6 +3,8 @@
 #include <cmath>
 #include <iostream>
 
+#include <glm/glm.hpp>
+
 mesh::mesh(std::vector<vertex>& v, std::vector<unsigned int>& i)
     : vertices(v), index(i), generated(false) {
 
@@ -48,8 +50,8 @@ mesh genPolygon(int numSides) {
     for(int i = 0; i < numSides; i++) {
         // essentially, there will be numsides amount of triangles all around the center
 
-        float x = cos((i * angle) * 180.0/M_PI);
-        float y = sin((i * angle) * 180.0/M_PI);
+        float x = glm::cos(glm::radians(i * angle));
+        float y = glm::sin(glm::radians(i * angle));
 
         vertices.push_back(vertex(x, y, 1.0f, 1.0f, 1.0f, 1.0f));
         index.push_back(0); 

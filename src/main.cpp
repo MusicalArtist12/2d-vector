@@ -28,12 +28,12 @@ int main() {
     mesh* circle = new mesh(genPolygon(100));
 
     world::addItem(physObject(triangle), "triangle");
-    world::addItem(physObject(square), "square");
-    world::addItem(physObject(pentagon), "pentagon");
-    world::addItem(physObject(hexagon), "hexagon");
-    world::addItem(physObject(circle), "circle");
+    //world::addItem(physObject(square), "square");
+    //world::addItem(physObject(pentagon), "pentagon");
+    //world::addItem(physObject(hexagon), "hexagon");
+    //world::addItem(physObject(circle), "circle");
 
-    world::objectTable.pullItem("circle");
+    //world::objectTable.pullItem("circle");
 
     window::init();
     window::loadFont("data/fonts/SourceCodePro-Regular.otf", 16);

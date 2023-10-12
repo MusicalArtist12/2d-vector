@@ -67,9 +67,8 @@ int window::initOpenGL() {
 int window::initImGui() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
     ImGui::StyleColorsDark();
+    
     ImGui_ImplGlfw_InitForOpenGL(window::window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 

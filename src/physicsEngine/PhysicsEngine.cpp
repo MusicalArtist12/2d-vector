@@ -8,46 +8,48 @@
 
 namespace physics {
     float grav = 0.0f;
+    float ground = 0.0f;
+    float ceiling = 1000.0f;
 }
 
 void physics::calculatePhysics(physObject& obj) {
-    float* vel[] = { &obj.vel.x, &obj.vel.y };
     //float* accel[] = { &obj.accel.x, &obj.accel.y };
     
     float tmp_accel = obj.accel.y;
 
-    if(obj.pos[1] >= 0) {
+    if(obj.inYBounds(ground, ceiling)) {
         obj.accel.y += grav;
+        std::cout << "using gravity" << std::endl;
+    } else {
+        if(obj.vel.y < 0.0) obj.vel.y = 0.0;
     }
 
     obj.vel += obj.accel * window::deltaTime;
 
-    if(obj.pos[1] <= 0) {
-        obj.pos[1] = 0.0f;
-
-        if(*vel[1] < 0) *vel[1] = 0.0f;
-    }
 
     obj.pos += (obj.vel * window::deltaTime);
 
     obj.accel.y = tmp_accel;
 }
 
-bool physObject::inBounds(float x, float y) {
-    x = x - pos.x;
-    y = y - pos.y;
+bool physObject::inXBounds(float x_min, float x_max) {
+    std::cout << x_min + myMesh->radius << " < " << pos.x << " < " << x_max + myMesh->radius << std::endl;
 
-    // check radius
-    float distance = sqrt( pow(x, 2) + pow(y, 2) );
+    if( (x_min + myMesh->radius) < pos.x && pos.x < (x_max - myMesh->radius) ){
+        return true;
+    }
 
-    // if in radius, continue. otherwise return false
-    if( distance > this->myMesh->radius) return false;
+    return false;
+}
 
-    // Two cases:
-        // direction from the center of the 
+bool physObject::inYBounds(float y_min, float y_max) {
+    std::cout << y_min + myMesh->radius << " < " << pos.y << " < " << y_max + myMesh->radius << std::endl;
 
+    if( (y_min + myMesh->radius) < pos.y && pos.y < (y_max - myMesh->radius) ){
+        return true;
+    }
 
-    return true;
+    return false;
 }
 
 glm::mat4 physObject::modelMatrix() {
