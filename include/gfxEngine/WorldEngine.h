@@ -15,12 +15,10 @@ namespace world {
     extern bool usePhysics;
     
     void addItem(physObject obj, std::string id);
+    physObject pullItem(std::string id);
 
     void update();
 
-    #ifdef WORLD_APP
-        void appInfo();
-    #endif 
 };
 
 #endif

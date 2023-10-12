@@ -17,8 +17,9 @@ class physObject {
         glm::vec3 pos = glm::vec3(0.0f);
         glm::vec3 vel = glm::vec3(0.0f);
         glm::vec3 accel = glm::vec3(0.0f);
-        
-        
+
+        bool inBounds(float x, float y);
+    
         physObject(mesh* shape)
             : myMesh(shape) {}
 

@@ -46,6 +46,7 @@ PUBLIC
 add_library(glCore
     src/glCore/Shader.cpp 
     src/glCore/WindowEngine.cpp 
+    src/glCore/Mesh.cpp 
 )
 
 target_include_directories(glCore

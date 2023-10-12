@@ -50,6 +50,46 @@ node<T>* linkedList<T>::getItem(std::string id) {
 }
 
 template <typename T> 
+T* linkedList<T>::pullItem(std::string id) {
+    if(isEmpty()) return nullptr;
+
+    node<T>* ptr = head;
+
+    if(ptr->name == id) {
+        if(ptr->next == nullptr) {
+            head = nullptr;
+        } else {
+            head = ptr->next;
+        }
+
+        T* myValue = new T(ptr->value);
+        delete ptr; 
+
+        return myValue;
+    } 
+
+    if(ptr->next == nullptr) {
+        return nullptr;
+    }
+
+    while(ptr->next != nullptr) {
+        node<T>* tmp = ptr->next;
+
+        if(tmp->name == id) {
+            T* myValue = new T(tmp->value);
+            ptr->next = tmp->next;
+            delete tmp; 
+
+            return myValue;
+        }
+
+        ptr = ptr->next;
+    }
+
+    return nullptr;
+}
+
+template <typename T> 
 int dictionary<T>::hash(std::string str) {
 
     int hashValue = 26 * ((int)str[0] - 65); 
@@ -57,9 +97,32 @@ int dictionary<T>::hash(std::string str) {
     if(str.length() > 1)
         hashValue += ((int)str[1] - 65); 
 
-    hashValue = hashValue % DICTIONARY_SIZE;
+    hashValue = hashValue % length;
 
     return hashValue;
+}
+
+template <typename T>
+int dictionary<T>::size() {
+    int dictionarySize = 0;
+
+    for(int i = 0; i < length; i++) {
+        dictionarySize += dict[i].size();
+    }
+
+    return dictionarySize;
+}
+
+template <typename T>
+bool dictionary<T>::hasItem(std::string name) {
+    int pos = hash(name);
+
+    node<T>* ptr = dict[pos].getItem(name); 
+
+    if(ptr == nullptr) return false;
+
+    return true;
+    
 }
 
 template <typename T>
@@ -94,7 +157,6 @@ T& dictionary<T>::getItem(std::string name) {
     node<T>* ptr = dict[pos].getItem(name);
 
     if(ptr == nullptr) {
-        std::cout << "[dictionary]: Item \'" << name << "\' does not exist" << std::endl;
         throw std::invalid_argument("item does not exist");
     }
 
@@ -102,23 +164,28 @@ T& dictionary<T>::getItem(std::string name) {
 }
 
 template <typename T>
-int dictionary<T>::size() {
-    int dictionarySize = 0;
+T dictionary<T>::pullItem(std::string name) {
+    int pos = hash(name);
 
-    for(int i = 0; i < DICTIONARY_SIZE; i++) {
-        dictionarySize += dict[i].size();
+    T* ptr = dict[pos].pullItem(name);
+
+    if(ptr == nullptr) {
+        throw std::invalid_argument("Item does not exist");
     }
+    
+    T myValue = *ptr;
+    delete ptr;
 
-    return dictionarySize;
+    return myValue;
 }
 
 template <typename T>
-std::string* dictionary<T>::getArrayOfItems() {
+std::string* dictionary<T>::getArrayOfIDs() {
     std::string* array = new std::string[size()];
     
     int idx = 0;
     
-    for(int i = 0; i < DICTIONARY_SIZE; i++) {
+    for(int i = 0; i < length; i++) {
         if(dict[i].isEmpty()) continue;
         
         node<T>* ptr = dict[i].head;

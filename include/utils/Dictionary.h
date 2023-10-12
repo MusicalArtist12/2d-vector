@@ -6,8 +6,6 @@
 #include <string>
 #include <iostream>
 
-#define DICTIONARY_SIZE 676
-
 template <typename T>
 struct node {
     T value;
@@ -26,20 +24,31 @@ struct linkedList {
     int size();
 
     node<T>* getItem(std::string id);
+    T* pullItem(std::string id);
 };
 
 template <typename T>
 class dictionary {
     private:
-        linkedList<T> dict[DICTIONARY_SIZE];
+        const int length;
+
+        linkedList<T>* dict;
         int hash(std::string str);
 
     public:
+        int size();
+
+        bool hasItem(std::string name);
+
         void addItem(T item, std::string name);
         T& getItem(std::string name);
+        T pullItem(std::string name);
         
-        int size();
-        std::string* getArrayOfItems();
+        std::string* getArrayOfIDs();
+
+        dictionary(int len): length(len) {
+            dict = new linkedList<T>[length];
+        }
 };
 
 #endif

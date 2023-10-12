@@ -6,8 +6,9 @@
 #include "gfxEngine/RenderEngine.h"
 
 namespace world {
-    dictionary<physObject> objectTable;   
+    dictionary<physObject> objectTable(676);   
     std::string* objectNames;
+    
     int tableSize;
     bool usePhysics = false;
 }
@@ -16,8 +17,12 @@ void world::addItem(physObject obj, std::string id) {
     objectTable.addItem(obj, id);
 } 
 
+physObject world::pullItem(std::string id) {
+    return objectTable.pullItem(id);
+}
+
 void world::update() {
-    objectNames = objectTable.getArrayOfItems();
+    objectNames = objectTable.getArrayOfIDs();
     tableSize = objectTable.size();
 
     for(int i = 0; i < tableSize; i++) {
@@ -25,10 +30,6 @@ void world::update() {
         
         if(usePhysics) {
             physics::calculatePhysics(iObject);
-        }
-
-        if(!iObject.myMesh->generated) {
-            render::generateBuffer(iObject.myMesh);
         }
 
         render::drawMesh(iObject.myMesh, iObject.modelMatrix());

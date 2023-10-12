@@ -12,7 +12,12 @@ void render::updateCamera() {
 
 void render::drawMesh(mesh* Mesh, glm::mat4 model) {
     activeShader->bind();
-    activeShader->drawMesh(Mesh->VAO, Mesh->index.size(), model);
+
+    if(!Mesh->generated) {
+        generateBuffer(Mesh);
+    }
+    
+    if(Mesh->mode == TRIANGLE) activeShader->drawMesh(Mesh->VAO, Mesh->index.size(), model);
 }
 
 void render::generateBuffer(mesh* Mesh) {

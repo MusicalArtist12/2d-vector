@@ -34,9 +34,6 @@ namespace window {
 
     void updateClock();
 
-    #ifdef WINDOW_APP
-        void appInfo();
-    #endif
 }
 
 #endif

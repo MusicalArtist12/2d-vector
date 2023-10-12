@@ -1,7 +1,3 @@
-#define CAMERA_APP 1
-#define WINDOW_APP 1
-#define WORLD_APP 1
-
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -14,25 +10,31 @@
 #include "physicsEngine/PhysicsEngine.h"
 #include "gfxEngine/WorldEngine.h"
 
-std::vector<vertex> mesh0_vertices = {
-    vertex(-1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f),
-    vertex(-1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f),
-    vertex(1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f),
-    vertex(1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f)
-};
-
-std::vector<GLuint> mesh0_index = {
-    0, 1, 2,
-    0, 3, 2
-};
+#include "glCore/Shapes.h"
 
 void loop();
 
-int main() { 
-    mesh mesh0(mesh0_vertices, mesh0_index);
-    physObject myObject(&mesh0);
+dictionary<bool *> appBools(26);
 
-    world::addItem(myObject, "rainbow cube");
+void cameraApp(camera* myCam);
+void windowApp();
+void worldApp();
+void objectApp(physObject& myObject, std::string id);
+
+int main() { 
+    mesh* triangle = new mesh(genPolygon(3));
+    mesh* square = new mesh(genPolygon(4));
+    mesh* pentagon = new mesh(genPolygon(5));
+    mesh* hexagon = new mesh(genPolygon(6));
+    mesh* circle = new mesh(genPolygon(100));
+
+    world::addItem(physObject(triangle), "triangle");
+    world::addItem(physObject(square), "square");
+    world::addItem(physObject(pentagon), "pentagon");
+    world::addItem(physObject(hexagon), "hexagon");
+    world::addItem(physObject(circle), "circle");
+
+    world::objectTable.pullItem("circle");
 
     window::init();
     window::loadFont("data/fonts/SourceCodePro-Regular.otf", 32);
@@ -49,7 +51,6 @@ int main() {
 glm::vec3 background_color(0.0f, 0.0f, 0.0f);
 
 void loop() {
-    
     while(!glfwWindowShouldClose(window::window)) {
         window::refresh();
         ImGui::NewFrame();
@@ -57,60 +58,100 @@ void loop() {
         glClearColor(background_color[0], background_color[1], background_color[2], 1.0f);  
         
         render::updateCamera();
+
         render::activeCamera->InputLoop(window::deltaTime);
-        render::activeCamera->getMousePositionRelative();
+        
+        cameraApp(render::activeCamera);
+        windowApp();
+        worldApp();
 
         world::update();
-        
-        render::activeCamera->appInfo();
-        window::appInfo();
-        world::appInfo();
 
-        window::render();
-        
+        window::render();  
     }
 }
 
-void camera::appInfo() {
-    static bool on = true;
+void cameraApp(camera* myCam) {
+    if(!appBools.hasItem("Camera App")) {
+        appBools.addItem(new bool(true), "Camera App");
+    }
 
-    ImGui::Begin("Camera Info", &on);
+    bool* run = appBools.getItem("Camera App");
+    if(!*run) return; 
 
-    float curPos[] = {pos[0], pos[1]};
+    ImGui::Begin("Camera Info", run);
 
-    ImGui::SliderFloat2("Camera Position", curPos, -1000, 1000);
-    ImGui::SliderFloat("Camera Scale", &scale, minScale, maxScale);
-    ImGui::SliderFloat("Camera Speed", &speed, 500, 2000);
+    ImGui::InputFloat2("Camera Position", (float *)&myCam->pos);
+    ImGui::InputFloat("Camera Scale", &myCam->scale);
+    ImGui::InputFloat("Camera Speed", &myCam->speed);
 
-    pos[0] = curPos[0];
-    pos[1] = curPos[1];
+    ImGui::End();
+
+}
+
+void windowApp() {
+    if(!appBools.hasItem("Window App")) {
+        appBools.addItem(new bool(true), "Window App");
+    }
+    
+    bool* run = appBools.getItem("Window App");
+    if(!*run) return;
+
+    ImGui::Begin("Window Info", run);
+        ImGui::Text("Clock Rate: %3f", window::deltaTime);
+        ImGui::Text("Height: %3u", window::height);
+        ImGui::Text("Width: %3u", window::width);
 
     ImGui::End();
 }
 
-void window::appInfo() {
-    static bool on = true;
+void worldApp() {
+    if(!appBools.hasItem("World App")) {
+        appBools.addItem(new bool(true), "World App");
+    }
 
-    ImGui::Begin("Window Info", &on);
-        ImGui::Text("Clock Rate: %3f", deltaTime);
-        ImGui::Text("Height: %3u", height);
-        ImGui::Text("Width: %3u", width);
+    bool* run = appBools.getItem("World App");
 
-    ImGui::End();
-}
+    if(!*run) return;
 
-void world::appInfo() {
-    static bool on = true;
+    ImGui::Begin("World Info", run);
 
-    ImGui::Begin("World Info", &on);
+    ImGui::InputFloat("Gravity", &physics::grav);
+    ImGui::Checkbox("Use Physics", &world::usePhysics);
 
-    static bool* worldItems = new bool[tableSize];
+    for(int i = 0; i < world::tableSize; i++) {
+        std::string appName = world::objectNames[i] + " App";
 
+        if(!appBools.hasItem(appName.c_str())) {
+            appBools.addItem(new bool(true), appName.c_str());
+        }
 
-    for(int i = 0; i < tableSize; i++) {
-        ImGui::Checkbox(objectNames[i].c_str(), &worldItems[i]);
+        ImGui::Checkbox(world::objectNames[i].c_str(), appBools.getItem(appName.c_str()));
     }
 
     ImGui::End();
 
+    for(int i = 0; i < world::tableSize; i++) {
+        objectApp(world::objectTable.getItem(world::objectNames[i]), world::objectNames[i]);
+    }
+}
+
+void objectApp(physObject& myObject, std::string id) {
+    std::string appName = id + " App";
+
+    if(!appBools.hasItem(appName)) {
+        appBools.addItem(new bool(true), appName);
+    }
+
+    bool* run = appBools.getItem(appName);
+
+    if(!*run) return;
+
+    ImGui::Begin(id.c_str(), run);
+
+    ImGui::InputFloat2("Position", (float *)&myObject.pos);
+    ImGui::InputFloat2("Velocity", (float *)&myObject.vel);
+    ImGui::InputFloat2("Acceleration", (float *)&myObject.accel);
+
+    ImGui::End();
 }

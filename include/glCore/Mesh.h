@@ -8,6 +8,10 @@
 
 #include <vector>
 
+enum IndexMode {
+    TRIANGLE
+};
+
 struct mesh {
     std::vector <vertex> vertices;
     std::vector <unsigned int> index;
@@ -18,8 +22,11 @@ struct mesh {
 
     bool generated;
 
-    mesh(std::vector<vertex>& v, std::vector<unsigned int>& i)
-        : vertices(v), index(i), generated(false) {}
+    IndexMode mode = TRIANGLE;
+
+    float radius = 0; // set by the constructor and determines the circle that entraps the object
+
+    mesh(std::vector<vertex>& v, std::vector<unsigned int>& i);
 };
 
 #endif
