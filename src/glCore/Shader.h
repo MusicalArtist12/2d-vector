@@ -5,13 +5,9 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#include <iostream>
-#include <fstream>
 #include <string>
-#include <sstream>
-#include <vector>
 
-#include "glCore/Vertex.h"
+#include "glCore/Mesh.h"
 
 class shader {
     public:

@@ -2,7 +2,7 @@
 #define WORLDENGINE_H
 
 #include "utils/Dictionary_impl.h"
-#include "physicsEngine/PhysObject.h"
+#include "physicsEngine/PhysicsEngine.h"
 
 #include <imgui.h>
 

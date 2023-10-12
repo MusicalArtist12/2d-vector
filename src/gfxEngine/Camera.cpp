@@ -10,13 +10,6 @@
 
 
 glm::mat4 camera::projection() {
-    /*
-    return glm::perspective(
-    glm::radians(FOV), 
-    (float) window::width / (float) window::height, 
-    0.1f, 100.0f);
-    */
-
     float relWidth = window::width/(2 * scale);
     float relHeight = window::height/(2 * scale);
     
@@ -26,9 +19,6 @@ glm::mat4 camera::projection() {
     top = 1 * relHeight;
 
     return glm::ortho(left, right, bottom, top, 0.0f, 100.0f);
-
-    //return glm::perspective(10.0f, (float)window::width/window::height, 10.0f, 200.0f);
-    
 }
 
 glm::mat4 camera::view() {

@@ -1,5 +1,5 @@
-#ifndef PHYSOBJ_H
-#define PHYSOBJ_H
+#ifndef PHYSICSENGINE_H
+#define PHYSICSENGINE_H
 
 #include "glCore/Mesh.h"
 
@@ -29,5 +29,11 @@ class physObject {
         glm::mat4 modelMatrix();
 
 };
+
+namespace physics {
+    extern float grav;
+
+    void calculatePhysics(physObject& obj);
+}
 
 #endif

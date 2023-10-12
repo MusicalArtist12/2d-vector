@@ -1,4 +1,6 @@
-#include <utils/Dictionary.h>
+#include "utils/Dictionary.h"
+
+#include <iostream>
 
 template <typename T> 
 inline bool linkedList<T>::isEmpty() {

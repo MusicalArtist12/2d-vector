@@ -1,4 +1,8 @@
-#include "glCore/Shader.h"
+#include "Shader.h"
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 void shader::drawMesh(GLuint VAO, int size, glm::mat4 model) {
     bind();

@@ -22,7 +22,7 @@ add_library(gfxEngine
 
 target_include_directories(gfxEngine
 PUBLIC
-    ${PROJECT_SOURCE_DIR}/include/
+    ${PROJECT_SOURCE_DIR}/src/
     ${PROJECT_SOURCE_DIR}/external/glad/include/
     ${PROJECT_SOURCE_DIR}/external/glfw/include/
     ${PROJECT_SOURCE_DIR}/external/glm/include/
@@ -30,13 +30,12 @@ PUBLIC
 )
 
 add_library(physicsEngine
-    src/physicsEngine/PhysObject.cpp
     src/physicsEngine/PhysicsEngine.cpp
 )
 
 target_include_directories(physicsEngine
 PUBLIC
-    ${PROJECT_SOURCE_DIR}/include/
+    ${PROJECT_SOURCE_DIR}/src/
     ${PROJECT_SOURCE_DIR}/external/glad/include/
     ${PROJECT_SOURCE_DIR}/external/glfw/include/
     ${PROJECT_SOURCE_DIR}/external/glm/include/
@@ -51,7 +50,7 @@ add_library(glCore
 
 target_include_directories(glCore
 PUBLIC
-    ${PROJECT_SOURCE_DIR}/include/
+    ${PROJECT_SOURCE_DIR}/src/
     ${PROJECT_SOURCE_DIR}/external/glad/include/
     ${PROJECT_SOURCE_DIR}/external/glfw/include/
     ${PROJECT_SOURCE_DIR}/external/glm/include/
@@ -66,7 +65,7 @@ add_executable(a.out src/main.cpp)
 
 target_include_directories(a.out
 PUBLIC
-    ${PROJECT_SOURCE_DIR}/include/
+    ${PROJECT_SOURCE_DIR}/src/
     ${PROJECT_SOURCE_DIR}/external/glad/include/
     ${PROJECT_SOURCE_DIR}/external/glfw/include/
     ${PROJECT_SOURCE_DIR}/external/glm/include/

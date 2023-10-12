@@ -10,7 +10,6 @@
 #include "physicsEngine/PhysicsEngine.h"
 #include "gfxEngine/WorldEngine.h"
 
-#include "glCore/Shapes.h"
 
 void loop();
 
@@ -37,7 +36,7 @@ int main() {
     world::objectTable.pullItem("circle");
 
     window::init();
-    window::loadFont("data/fonts/SourceCodePro-Regular.otf", 32);
+    window::loadFont("data/fonts/SourceCodePro-Regular.otf", 16);
 
     render::activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
     render::activeCamera = new camera;
