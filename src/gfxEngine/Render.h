@@ -9,13 +9,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-namespace render {
-    extern shader* activeShader;
-    extern camera* activeCamera;
+class render {
+    public:
+        shader* activeShader;
+        camera* activeCamera;
 
-    void updateCamera();
-    void drawMesh(mesh* Mesh, glm::mat4 model);
-    void generateBuffer(mesh* Mesh);
-}
+        void updateCamera();
+        void drawMesh(mesh* Mesh, glm::mat4 model);
+        void generateBuffer(mesh* Mesh);
+
+};
 
 #endif

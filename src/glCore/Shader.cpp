@@ -141,8 +141,8 @@ shader::shader(const char* vertex_path, const char* fragment_path) {
     const char* vShaderCode = vertexCode.c_str();
     const char* fShaderCode = fragmentCode.c_str();
 
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+
     glShaderSource(vertexShader, 1, &vShaderCode, NULL);
     glCompileShader(vertexShader);
 

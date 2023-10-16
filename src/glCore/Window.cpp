@@ -1,28 +1,7 @@
-#include "WindowEngine.h"
+#include "Window.h"
 
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
-namespace window {
-    unsigned int width = 1920;
-    unsigned int height = 1080;
-
-    float deltaTime = 0.0f;
-    float lastFrame = 0.0f;
-
-    char title[] = "Title";
-
-    GLFWwindow* window;
-
-}
-
-void window::framebuffer_size_callback(GLFWwindow* window, int w, int h) {
-    width = w;
-    height = h;
-    glViewport(0, 0, width, height);
-
-    refresh();
-}
 
 int window::initGLFW() {
     if(glfwInit() == 0) {
@@ -38,16 +17,16 @@ int window::initGLFW() {
 }
 
 int window::initWindow() {
-    window = glfwCreateWindow(width, height, title, NULL, NULL);
-    if(window == NULL) {
+    ID = glfwCreateWindow(width, height, title, NULL, NULL);
+    if(ID == NULL) {
         std::cout << "Failed to create Window" << std::endl;
         glfwTerminate();   
 
         return 0;
     }
 
-    glfwMakeContextCurrent(window); // must come before OpenGL initialization
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwMakeContextCurrent(ID); // must come before OpenGL initialization
+//    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     return 1;
 } 
@@ -69,7 +48,7 @@ int window::initImGui() {
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
     
-    ImGui_ImplGlfw_InitForOpenGL(window::window, true);
+    ImGui_ImplGlfw_InitForOpenGL(ID, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
     return 1;
@@ -85,13 +64,16 @@ int window::init() {
 }
 
 void window::refresh() {
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(ID);
     glfwPollEvents();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
+
+    glfwGetFramebufferSize(ID, &width, &height);
+    glViewport(0, 0, width, height);
 }
 
 void window::render() {
@@ -118,7 +100,7 @@ int window::readKey(int key) {
         return 0;
     }
 
-    return glfwGetKey(window, key);
+    return glfwGetKey(ID, key);
 }
 
 int window::readMouseButton(int key) {
@@ -127,7 +109,7 @@ int window::readMouseButton(int key) {
         return 0;
     } 
 
-    return glfwGetMouseButton(window, key);
+    return glfwGetMouseButton(ID, key);
 }
 
 void window::readMousePos(double* x, double* y) {
@@ -136,7 +118,7 @@ void window::readMousePos(double* x, double* y) {
         return;
     } 
 
-    glfwGetCursorPos(window::window, x, y);
+    glfwGetCursorPos(ID, x, y);
 }
 
 void window::updateClock() {

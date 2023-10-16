@@ -1,9 +1,4 @@
-#include "gfxEngine/RenderEngine.h"
-
-namespace render {
-    shader* activeShader;
-    camera* activeCamera;
-}
+#include "gfxEngine/Render.h"
 
 void render::updateCamera() {
     activeShader->bind();

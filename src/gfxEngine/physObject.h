@@ -43,13 +43,5 @@ class physObject {
 
 };
 
-namespace physics {
-    extern float grav;
-    extern float ground;
-    extern float ceiling;
-
-    void calculateForces(physObject& obj);
-    void calculateMovement(physObject& obj);
-}
 
 #endif

@@ -1,6 +1,6 @@
 
 #include "gfxEngine/Camera.h"
-#include "glCore/WindowEngine.h"
+#include "glCore/Window.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -8,10 +8,11 @@
 
 #include <imgui.h>
 
+extern window Window;
 
 glm::mat4 camera::projection() {
-    float relWidth = window::width/(2 * scale);
-    float relHeight = window::height/(2 * scale);
+    float relWidth = Window.width/(2 * scale);
+    float relHeight = Window.height/(2 * scale);
     
     left = -1 * relWidth;
     right = 1* relWidth;
@@ -29,19 +30,19 @@ glm::mat4 camera::view() {
 
 void camera::InputLoop(float deltaTime) {
     
-    if(window::readKey(GLFW_KEY_UP) == GLFW_PRESS) {
+    if(Window.readKey(GLFW_KEY_UP) == GLFW_PRESS) {
         pos += glm::vec2(0.0, speed/scale) * deltaTime;
     }
-    if(window::readKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
+    if(Window.readKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
         pos -= glm::vec2(0.0, speed/scale) * deltaTime;
     }
-    if(window::readKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
+    if(Window.readKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
         pos -= glm::vec2(speed/scale, 0.0) * deltaTime;
     }
-    if(window::readKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
+    if(Window.readKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
         pos += glm::vec2(speed/scale, 0.0) * deltaTime;
     }
-    if(window::readKey(GLFW_KEY_PAGE_UP) == GLFW_PRESS && scale < maxScale) {
+    if(Window.readKey(GLFW_KEY_PAGE_UP) == GLFW_PRESS && scale < maxScale) {
         scale += (speed * scale * 0.001) * deltaTime;
 
         if(scale > maxScale) {
@@ -49,7 +50,7 @@ void camera::InputLoop(float deltaTime) {
         }
 
     }
-    if(window::readKey(GLFW_KEY_PAGE_DOWN) == GLFW_PRESS && scale > minScale) {
+    if(Window.readKey(GLFW_KEY_PAGE_DOWN) == GLFW_PRESS && scale > minScale) {
         scale -= (speed * scale * 0.001) * deltaTime;
 
         if(scale < minScale) {
@@ -63,7 +64,7 @@ void camera::InputLoop(float deltaTime) {
     if(next_cycle) {        
         double x_f, y_f;
 
-        window::readMousePos(&x_f, &y_f);
+        Window.readMousePos(&x_f, &y_f);
 
         double deltaX = (x_f - x_i) / scale; // window width/height cancel out
         double deltaY = (y_f - y_i) / scale;
@@ -73,9 +74,9 @@ void camera::InputLoop(float deltaTime) {
     }
 
 
-    if(window::readMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+    if(Window.readMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         next_cycle = true;
-        window::readMousePos(&x_i, &y_i);
+        Window.readMousePos(&x_i, &y_i);
     } else {
         next_cycle = false;
     }    

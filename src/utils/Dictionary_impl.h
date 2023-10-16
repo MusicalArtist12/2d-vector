@@ -1,3 +1,6 @@
+#ifndef DICTIONARY_IMPL_H
+#define DICTIONARY_IMPL_H
+
 #include "Dictionary.h"
 
 #include <iostream>
@@ -143,3 +146,5 @@ std::vector<std::string> dictionary<T>::nameList() {
 
     return names;
 }
+
+#endif

@@ -5,16 +5,18 @@
 #include <glad/gl.h>     
 #include <GLFW/glfw3.h>  
 
-#include "glCore/WindowEngine.h" // Layer between OS and code
-#include "gfxEngine/RenderEngine.h"
-#include "physicsEngine/PhysicsEngine.h"
-#include "gfxEngine/WorldEngine.h"
+#include "glCore/Window.h" // Layer between OS and code
+#include "gfxEngine/Render.h"
+#include "gfxEngine/World.h"
 
 
-void loop();
+window Window("Title");
+render Render;
+world World;
 
 dictionary<bool *> appBools(26);
 
+void loop();
 void appApp();
 void cameraApp(camera* myCam);
 void windowApp();
@@ -23,47 +25,46 @@ void objectApp(physObject& myObject, std::string id);
 
 int main() { 
     mesh* circle = new mesh(genPolygon(100));
+    World.objectTable.add("circle", physObject(circle)).pos = glm::vec3(0.0, 5.0, 0.0);
 
-    world::objectTable.add("circle", physObject(circle)).pos = glm::vec3(0.0, 5.0, 0.0);
+    Window.init();
+    Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
 
-    window::init();
-    window::loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
-
-    render::activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
-    render::activeCamera = new camera;
+    Render.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
+    Render.activeCamera = new camera;
     
     loop();
 
-    window::terminate();
+    Window.terminate();
     return 0;
 }
 
 glm::vec3 background_color(0.0f, 0.0f, 0.0f);
 
 void loop() {
-    while(!glfwWindowShouldClose(window::window)) {
-        window::refresh();
+    while(!Window.shouldClose()) {
+        Window.refresh();
         ImGui::NewFrame();
 
         glClearColor(background_color[0], background_color[1], background_color[2], 1.0f);  
         
-        render::updateCamera();
+        Render.updateCamera();
 
-        render::activeCamera->InputLoop(window::deltaTime);
+        Render.activeCamera->InputLoop(Window.deltaTime);
         
         appApp();
-        cameraApp(render::activeCamera);
+        cameraApp(Render.activeCamera);
         windowApp();
         worldApp();
 
-        for(int i = 0; i < world::tableSize; i++) {
-            objectApp(world::objectTable.entry(world::objectNames[i]), world::objectNames[i]);
+        for(int i = 0; i < World.tableSize; i++) {
+            objectApp(World.objectTable.entry(World.objectNames[i]), World.objectNames[i]);
         }
 
 
-        world::update();
+        World.update();
 
-        window::render();  
+        Window.render();  
     }
 }
 
@@ -100,11 +101,11 @@ void windowApp() {
     if(!*run) return;
 
     ImGui::Begin("Window Info", run);
-        ImGui::Text("Clock Rate: %3f", window::deltaTime);
-        float framerate = 1.0f / window::deltaTime;
+        ImGui::Text("Clock Rate: %3f", Window.deltaTime);
+        float framerate = 1.0f / Window.deltaTime;
         ImGui::Text("Framerate: %3f", framerate);
-        ImGui::Text("Height: %3u", window::height);
-        ImGui::Text("Width: %3u", window::width);
+        ImGui::Text("Height: %3u", Window.height);
+        ImGui::Text("Width: %3u", Window.width);
 
     ImGui::End();
 }
@@ -117,17 +118,17 @@ void worldApp() {
     ImGui::Begin("World Info", run);
 
     ImGui::Text("Physics Settings");
-    ImGui::InputFloat("Gravity", &physics::grav);
-    ImGui::Checkbox("Use Physics", &world::usePhysics);
+    ImGui::InputFloat("Gravity", &World.grav);
+    ImGui::Checkbox("Use Physics", &World.usePhysics);
     ImGui::Text("");
-    ImGui::Text("Number of Objects: %i", world::tableSize);
+    ImGui::Text("Number of Objects: %i", World.tableSize);
 
-    for(int i = 0; i < world::tableSize; i++) {
-        std::string appName = "Object: " + world::objectNames[i];
+    for(int i = 0; i < World.tableSize; i++) {
+        std::string appName = "Object: " + World.objectNames[i];
 
         bool* myBool = appBools.add(appName, new bool(false));
 
-        ImGui::Checkbox(world::objectNames[i].c_str(), myBool);
+        ImGui::Checkbox(World.objectNames[i].c_str(), myBool);
     }
 
     ImGui::End();
