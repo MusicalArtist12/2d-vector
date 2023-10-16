@@ -54,13 +54,12 @@ int window::initImGui() {
     return 1;
 }
 
-int window::init() {
+window::window(const char* t): title(t), width(1920), height(1080), deltaTime(0.0f), lastFrame(0.0f) {
     initGLFW();
     initWindow();
     initOpenGL();
     initImGui();
 
-    return 1;
 }
 
 void window::refresh() {

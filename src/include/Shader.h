@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "glCore/Mesh.h"
+#include "Mesh.h"
 
 class shader {
     public:

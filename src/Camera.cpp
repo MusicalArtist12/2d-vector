@@ -1,6 +1,6 @@
+#include "Camera.h"
 
-#include "gfxEngine/Camera.h"
-#include "glCore/Window.h"
+#include "Window.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

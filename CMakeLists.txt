@@ -14,3 +14,26 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/external/glfw)
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/glm)
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/imgui)
 
+set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
+
+add_executable(a.out 
+    ${SRC_DIR}/Window.cpp
+    ${SRC_DIR}/Mesh.cpp
+    ${SRC_DIR}/Shader.cpp 
+    ${SRC_DIR}/Camera.cpp
+    ${SRC_DIR}/Render.cpp 
+    ${SRC_DIR}/World.cpp
+    ${SRC_DIR}/main.cpp
+)
+
+target_link_libraries(a.out glm imgui glad glfw)
+
+target_include_directories(a.out
+    PUBLIC
+        ${SRC_DIR}/include
+        ${SRC_DIR}/
+        ${PROJECT_SOURCE_DIR}/external/glm/
+        ${PROJECT_SOURCE_DIR}/external/imgui/include/
+        ${PROJECT_SOURCE_DIR}/external/glad/include/
+        ${PROJECT_SOURCE_DIR}/external/glfw/include/
+)

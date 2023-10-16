@@ -24,8 +24,6 @@ class window {
         float deltaTime;
         float lastFrame;
         
-        int init();
-
         void refresh();
         void render();
         void terminate();
@@ -40,7 +38,7 @@ class window {
 
         bool shouldClose() { return glfwWindowShouldClose(ID); }
 
-        window(const char* t): title(t), width(1920), height(1080), deltaTime(0.0f), lastFrame(0.0f) {}
+        window(const char* t);
 };
 
 

@@ -5,10 +5,9 @@
 #include <glad/gl.h>     
 #include <GLFW/glfw3.h>  
 
-#include "glCore/Window.h" // Layer between OS and code
-#include "gfxEngine/Render.h"
-#include "gfxEngine/World.h"
-
+#include "Window.h"
+#include "Render.h"
+#include "World.h"
 
 window Window("Title");
 render Render;
@@ -16,7 +15,6 @@ world World;
 
 dictionary<bool *> appBools(26);
 
-void loop();
 void appApp();
 void cameraApp(camera* myCam);
 void windowApp();
@@ -25,23 +23,16 @@ void objectApp(physObject& myObject, std::string id);
 
 int main() { 
     mesh* circle = new mesh(genPolygon(100));
-    World.objectTable.add("circle", physObject(circle)).pos = glm::vec3(0.0, 5.0, 0.0);
 
-    Window.init();
+    World.objectTable.add("circle", physObject(circle)).pos = glm::vec3(0.0, 5.0, 0.0);
+    
     Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
 
     Render.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
     Render.activeCamera = new camera;
     
-    loop();
+    glm::vec3 background_color(0.0f, 0.0f, 0.0f);
 
-    Window.terminate();
-    return 0;
-}
-
-glm::vec3 background_color(0.0f, 0.0f, 0.0f);
-
-void loop() {
     while(!Window.shouldClose()) {
         Window.refresh();
         ImGui::NewFrame();
@@ -49,7 +40,6 @@ void loop() {
         glClearColor(background_color[0], background_color[1], background_color[2], 1.0f);  
         
         Render.updateCamera();
-
         Render.activeCamera->InputLoop(Window.deltaTime);
         
         appApp();
@@ -61,11 +51,12 @@ void loop() {
             objectApp(World.objectTable.entry(World.objectNames[i]), World.objectNames[i]);
         }
 
-
         World.update();
-
         Window.render();  
     }
+
+    Window.terminate();
+    return 0;
 }
 
 void appApp() {

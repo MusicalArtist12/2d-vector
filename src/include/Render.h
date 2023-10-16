@@ -1,9 +1,10 @@
 #ifndef RENDERENGINE_H
 #define RENDERENGINE_H
 
-#include "glCore/Shader.h"
-#include "gfxEngine/Camera.h"
-#include "glCore/Mesh.h"
+#include "Camera.h"
+
+#include "Shader.h"
+#include "Mesh.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

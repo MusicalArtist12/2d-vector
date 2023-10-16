@@ -1,11 +1,51 @@
-#include "gfxEngine/World.h"
-#include "glCore/Window.h"
-#include "glCore/Shader.h"
+#include "World.h"
+#include "Render.h"
 
-#include "gfxEngine/Render.h"
+#include "Window.h"
+#include "Shader.h"
 
 extern render Render;
 extern window Window;
+
+bool physObject::xBounds(float x_min, float x_max) {
+    if( (x_min + myMesh->radius) < pos.x && pos.x < (x_max - myMesh->radius) ){
+        return true;
+    }
+
+    return false;
+}
+
+bool physObject::yBounds(float y_min, float y_max) {
+    //std::cout << y_min + myMesh->radius << " < " << pos.y << " < " << y_max + myMesh->radius << std::endl;
+
+    if( (y_min + myMesh->radius) < pos.y && pos.y < (y_max - myMesh->radius) ){
+        return true;
+    }
+
+    return false;
+}
+
+int physObject::xAxisRelation(float axis) {
+    if( (axis < pos.x - myMesh->radius) ) return 1;
+    if( (axis > pos.x + myMesh->radius) ) return -1;
+    return 0;
+}
+
+int physObject::yAxisRelation(float axis) {
+    if( (axis < pos.y - myMesh->radius) ) return 1;
+    if( (axis > pos.y + myMesh->radius) ) return -1;
+    return 0;
+}
+
+glm::mat4 physObject::modelMatrix() {
+    glm::mat4 model(1.0f);
+
+    model = glm::translate(model, pos);
+
+    return model;
+}
+
+// ******************************************************************
 
 void world::addItem(physObject obj, std::string id) {
     objectTable.add(id, obj);

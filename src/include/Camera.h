@@ -7,7 +7,6 @@
 
 #include <imgui.h>
 
-
 class camera {
     private:
         const float maxScale = 10000;

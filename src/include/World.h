@@ -1,7 +1,8 @@
-#ifndef PHYSICSENGINE_H
-#define PHYSICSENGINE_H
+#ifndef WORLDENGINE_H
+#define WORLDENGINE_H
 
-#include "glCore/Mesh.h"
+#include "Mesh.h"
+#include "utils/Dictionary_impl.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -9,8 +10,6 @@
 
 #include <string>
 #include <vector>
-
-#include "utils/Dictionary.h"
 
 class physObject {
     public: 
@@ -43,5 +42,27 @@ class physObject {
 
 };
 
+class world {
+    public: 
+        float grav;
+        float ground;
+        float ceiling;
+        int tableSize;
+        bool usePhysics;
+
+        dictionary<physObject> objectTable;   
+        std::vector<std::string> objectNames;
+
+        void addItem(physObject obj, std::string id);
+
+        physObject pullItem(std::string id);
+
+        void update();
+
+        void calculateForces(physObject& obj);
+        void calculateMovement(physObject& obj);
+
+        world():  grav(0.0f), ground(0.0f), ceiling(1000.0f), usePhysics(false), objectTable(676) {}
+};
 
 #endif
