@@ -27,7 +27,7 @@ mesh::mesh(std::vector<vertex>& v, std::vector<unsigned int>& i)
     for(int i = 0; i < v.size(); i++) {
         v[i].pos[0] = v[i].pos[0] - x_mean;
         v[i].pos[1] = v[i].pos[1] - y_mean;
-
+    
         float distance = sqrt( pow(v[i].pos[0], 2) + pow((v[i].pos[1]), 2) );
 
         if(radius < distance) radius = distance;

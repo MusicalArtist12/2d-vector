@@ -25,7 +25,6 @@ int main() {
     mesh* circle = new mesh(genPolygon(100));
 
     World.objectTable.add("circle", physObject(circle)).pos = glm::vec3(0.0, 5.0, 0.0);
-    
     Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
 
     Render.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
@@ -123,7 +122,6 @@ void worldApp() {
     }
 
     ImGui::End();
-
 
 }
 
