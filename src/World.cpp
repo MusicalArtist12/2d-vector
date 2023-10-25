@@ -38,17 +38,33 @@ int physObject::yAxisRelation(float axis) {
 }
 
 glm::mat4 physObject::modelMatrix() {
-    glm::mat4 model(1.0f);
+    glm::mat4 model = transformMatrix;
 
-    model = glm::translate(model, pos);
+    model = glm::translate(glm::mat4(1.0f), pos) * model;
 
     return model;
+}
+
+float physObject::distanceFrom(glm::vec3 point) {
+    glm::vec3 delta = glm::vec3(point.x - pos.x, point.y - pos.y, point.z - pos.z);
+
+    return (float)sqrt(pow(delta.x,2) + pow(delta.y,2));
+}
+
+void physObject::calculateCollision(physObject& obj) {
+    float distance = distanceFrom(obj.pos);
+    
+
+    if(distance > myMesh->radius) return;
+
+    //forceVectors.add(obj.getID(), )
 }
 
 // ******************************************************************
 
 void world::addItem(physObject obj, std::string id) {
-    objectTable.add(id, obj);
+    objectTable.add(id, obj).id = id;
+
 } 
 
 physObject world::pullItem(std::string id) {
@@ -56,18 +72,25 @@ physObject world::pullItem(std::string id) {
 }
 
 void world::update() {
-    objectNames = objectTable.nameList();
-    tableSize = objectTable.size();
 
-    for(int i = 0; i < tableSize; i++) {
-        physObject& iObject = objectTable.entry(objectNames[i]);
-        
-        if(usePhysics) {
-            calculateForces(iObject);
+    for(int i = 0; i < objectTable.size(); i++) {
+        physObject& iObject = objectTable.getRef(i);
+        iObject.id = objectTable.getID(i);
+
+        if(usePhysics && !iObject.isStatic) {
             calculateMovement(iObject);
         }
 
         Render.drawMesh(iObject.myMesh, iObject.modelMatrix());
+    }
+
+    for(int i = 0; i < objectTable.size(); i++) {
+        physObject& iObject = objectTable.getRef(i);
+
+        if(usePhysics && !iObject.isStatic) {
+            calculateForces(iObject);
+        }   
+        
     }
 }
 
@@ -78,12 +101,8 @@ void world::calculateMovement(physObject& obj) {
     obj.pos += obj.vel * Window.deltaTime;
 }
 
-
 void world::calculateForces(physObject& obj) {
     
-    // force calculations
-    std::vector<glm::vec3> forces;
-
     // generate default forces if they don't exist
     glm::vec3& normalFloor = obj.forceVectors.add("physEngine normalFloor", glm::vec3(0.0f));
     glm::vec3& gravForce = obj.forceVectors.add("physEngine gravForce", glm::vec3(0.0f));
@@ -94,22 +113,17 @@ void world::calculateForces(physObject& obj) {
         if(gravForce.y <= 0) 
             normalFloor = gravForce * -1.0f;
         
-        if(obj.vel.y < 0.0f) obj.vel.y = 0.0f;
-
-        if(obj.pos.y < 0.0f) obj.pos.y = 0.0f;
+        if(obj.vel.y - obj.myMesh->radius < 0.0f) obj.vel.y = 0.0f;
+        if(obj.pos.y - obj.myMesh->radius < 0.0f) obj.pos.y = obj.myMesh->radius;
 
     } else {
         normalFloor = glm::vec3(0.0f);
     }
 
     obj.accel = glm::vec3(0.0f);
-
-    std::vector<std::string> forceNames = obj.forceVectors.nameList();
-    
     obj.forceSum = glm::vec3(0.0f);
 
-    for(int i = 0; i < forceNames.size(); i++) {
-        obj.forceSum += obj.forceVectors.entry(forceNames[i]);
+    for(int i = 0; i < obj.forceVectors.size(); i++) {
+        obj.forceSum += obj.forceVectors.getRef(i);
     }
-
 }

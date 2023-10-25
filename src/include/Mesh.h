@@ -45,6 +45,8 @@ struct mesh {
     mesh(std::vector<vertex>& v, std::vector<unsigned int>& i);
 };
 
+void setColor(mesh* myMesh, float r, float g, float b, float a);
+
 mesh genPolygon(int numSides);
 
 #endif

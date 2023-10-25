@@ -7,7 +7,7 @@
 template <typename T>
 struct node {
     T value;
-    std::string name;
+    const std::string name;
     node<T>* next;
 
     node(std::string& n, T val): value(val), name(n), next(nullptr) {}
@@ -18,10 +18,9 @@ struct linkedList {
     node<T>* head = nullptr;
 
     bool isEmpty();
-    int size();
 
     T remove(std::string name);
-    T& add(std::string name, T value);
+    T& add(std::string name, T value, bool& newEntry);
     T& entry(std::string name);
 };
 
@@ -33,15 +32,31 @@ class dictionary {
         linkedList<T>* dict;
         int hash(std::string name);
 
-    public:
-        dictionary(int n): length(n) {dict = new linkedList<T>[length];};
+        std::vector<node<T>*> _ptrList;
+        bool ptrListUpToDate;
 
-        int size();
+        void updatePtrList();
+
+    public:
+        dictionary(int n): length(n) {
+            dict = new linkedList<T>[length];
+            resetCache();
+        };
+
 
         T remove(std::string name);   
         T& add(std::string name, T value); 
         T& entry(std::string name);
-        std::vector<std::string> nameList();
+
+        T& getRef(int idx);
+        std::string getID(int idx);
+        int size();
+        
+
+        inline void resetCache() {
+            ptrListUpToDate = false;
+        }
+
 };
 
 #endif

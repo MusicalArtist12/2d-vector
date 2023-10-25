@@ -12,18 +12,26 @@
 #include <vector>
 
 class physObject {
+    private: 
+        std::string id; 
     public: 
-        mesh* myMesh;
+        friend class world;
+        inline std::string getID() { return id; }
 
+        mesh* myMesh;
+        
         glm::vec3 pos = glm::vec3(0.0f);
         glm::vec3 vel = glm::vec3(0.0f);
         glm::vec3 accel = glm::vec3(0.0f);
+        
+        glm::mat4 transformMatrix = glm::mat4(1.0f);
 
         float mass;
 
         glm::vec3 forceSum = glm::vec3(0.0f);
-
         dictionary<glm::vec3> forceVectors;
+
+        bool isStatic;
 
         bool xBounds(float x_min, float x_max);
         bool yBounds(float y_min, float y_max);
@@ -35,8 +43,13 @@ class physObject {
         int xAxisRelation(float axis);
         int yAxisRelation(float axis);
 
+        float distanceFrom(glm::vec3 pos);
+        
+        // only moves the parent object. call on both. 
+        void calculateCollision(physObject& obj);
+
         physObject(mesh* shape)
-            : myMesh(shape), mass(1.0f), forceVectors(26) {}
+            : myMesh(shape), mass(1.0f), forceVectors(26), isStatic(false) {}
 
         glm::mat4 modelMatrix();
 
@@ -47,14 +60,11 @@ class world {
         float grav;
         float ground;
         float ceiling;
-        int tableSize;
         bool usePhysics;
 
         dictionary<physObject> objectTable;   
-        std::vector<std::string> objectNames;
 
         void addItem(physObject obj, std::string id);
-
         physObject pullItem(std::string id);
 
         void update();

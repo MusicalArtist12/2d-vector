@@ -68,3 +68,13 @@ mesh genPolygon(int numSides) {
     
     return mesh(vertices, index);
 }
+
+void setColor(mesh* myMesh, float r, float g, float b, float a) {
+    for(int i = 0; i < myMesh->vertices.size(); i++) {
+        myMesh->vertices[i].rgba[0] = r;
+        myMesh->vertices[i].rgba[1] = g;
+        myMesh->vertices[i].rgba[2] = b;
+        myMesh->vertices[i].rgba[3] = a;
+
+    }
+}

@@ -10,21 +10,6 @@ bool linkedList<T>::isEmpty() {
     return (head == nullptr);
 }
 
-template <typename T>
-int linkedList<T>::size() {
-    if(isEmpty()) return 0;
-
-    int count = 1;
-    node<T>* ptr = head;
-
-    while(ptr->next != nullptr) {
-        count++;
-        ptr = ptr->next;
-    }
-
-    return count;
-}
-
 template <typename T> 
 T linkedList<T>::remove(std::string name) {
     if(isEmpty()) throw std::invalid_argument("object does not exist");
@@ -58,7 +43,9 @@ T linkedList<T>::remove(std::string name) {
 }
 
 template <typename T> 
-T& linkedList<T>::add(std::string name, T value) {
+T& linkedList<T>::add(std::string name, T value, bool& newEntry) {
+    newEntry = true;
+
     if(isEmpty()) {
         head = new node<T>(name, value);
         return head->value;
@@ -70,8 +57,12 @@ T& linkedList<T>::add(std::string name, T value) {
         ptr = ptr->next;
     }
 
-    if(ptr->name == name) return ptr->value;
+    if(ptr->name == name) {
+        newEntry = false;
+        return ptr->value;  
+    }
 
+    
     ptr->next = new node<T>(name, value);
     return ptr->next->value;
 }
@@ -104,23 +95,19 @@ int dictionary<T>::hash(std::string name) {
 }
 
 template <typename T>
-int dictionary<T>::size() {
-    int len = 0;
-    for(int i = 0; i < length; i++) {
-        if(!dict[i].isEmpty()) len += dict[i].size();
-    }
-
-    return len;
-}
-
-template <typename T>
 T dictionary<T>::remove(std::string name) {
+    resetCache();
     return dict[hash(name)].remove(name);
 }
 
 template <typename T>
 T& dictionary<T>::add(std::string name, T value) {
-    return dict[hash(name)].add(name, value);
+    
+    bool newEntry;
+    T& entry = dict[hash(name)].add(name, value, newEntry);
+    if(newEntry) resetCache();
+
+    return entry;
 }
 
 template <typename T>
@@ -129,22 +116,45 @@ T& dictionary<T>::entry(std::string name) {
 }
 
 template <typename T>
-std::vector<std::string> dictionary<T>::nameList() {
-    std::vector<std::string> names;
-
+void dictionary<T>::updatePtrList() {
+    _ptrList.clear();
+    
     for(int i = 0; i < length; i++) {
         if(dict[i].isEmpty()) continue;
 
         node<T>* ptr = dict[i].head;
-        names.push_back(ptr->name);
+
+        _ptrList.push_back(ptr);
 
         while(ptr->next != nullptr) {
             ptr = ptr->next;
-            names.push_back(ptr->name);
+            _ptrList.push_back(ptr);
         }
     }
 
-    return names;
+    ptrListUpToDate = true;
 }
+
+template <typename T>
+T& dictionary<T>::getRef(int idx) { 
+    if(!ptrListUpToDate) updatePtrList();
+
+    return _ptrList[idx]->value;
+}
+
+template <typename T>
+std::string dictionary<T>::getID(int idx) {
+    if(!ptrListUpToDate) updatePtrList();
+
+    return _ptrList[idx]->name;
+}
+
+template <typename T>
+int dictionary<T>::size() {
+    if(!ptrListUpToDate) updatePtrList();
+
+    return _ptrList.size();
+}
+
 
 #endif
