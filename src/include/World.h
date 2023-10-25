@@ -14,42 +14,29 @@
 class physObject {
     private: 
         std::string id; 
+        glm::mat4 transformMatrix; // currently does not change/ affect radius (used for ). this is a significant issue.
+        mesh* myMesh;
+        float radius;
+
     public: 
         friend class world;
         inline std::string getID() { return id; }
+        inline float getRadius() { return radius; }
 
-        mesh* myMesh;
+        glm::vec3 pos;
+        glm::vec3 vel;
+        glm::vec3 accel;
         
-        glm::vec3 pos = glm::vec3(0.0f);
-        glm::vec3 vel = glm::vec3(0.0f);
-        glm::vec3 accel = glm::vec3(0.0f);
-        
-        glm::mat4 transformMatrix = glm::mat4(1.0f);
-
         float mass;
-
-        glm::vec3 forceSum = glm::vec3(0.0f);
+        bool isStatic;
+        glm::vec3 forceSum();
         dictionary<glm::vec3> forceVectors;
 
-        bool isStatic;
-
-        bool xBounds(float x_min, float x_max);
-        bool yBounds(float y_min, float y_max);
-
-        /*  returns 1 if the entire object is to the right of the axis
-            returns 0 if the object crosses the axis
-            returns -1 if the entire object is to the left of the axis
-        */
-        int xAxisRelation(float axis);
-        int yAxisRelation(float axis);
-
-        float distanceFrom(glm::vec3 pos);
+        //bool crossesLine(glm::vec3 ptA, glm::vec3 ptB); // returns true if this object crosses a given line segment
         
-        // only moves the parent object. call on both. 
-        void calculateCollision(physObject& obj);
-
-        physObject(mesh* shape)
-            : myMesh(shape), mass(1.0f), forceVectors(26), isStatic(false) {}
+        physObject(mesh* shape): 
+            transformMatrix(1.0f), myMesh(shape), radius(shape->radius),
+            pos(0.0f), vel(0.0f), accel(0.0f), mass(1.0f), isStatic(false), forceVectors(26) {}
 
         glm::mat4 modelMatrix();
 
@@ -64,7 +51,6 @@ class world {
 
         dictionary<physObject> objectTable;   
 
-        void addItem(physObject obj, std::string id);
         physObject pullItem(std::string id);
 
         void update();
@@ -72,7 +58,16 @@ class world {
         void calculateForces(physObject& obj);
         void calculateMovement(physObject& obj);
 
+        float distance(glm::vec3 ptA, glm::vec3 ptB);
+        bool isColliding(physObject& objA, physObject& objB);
+        void resolveCollision(physObject& objA, physObject& objB);
+
+
+
         world():  grav(0.0f), ground(0.0f), ceiling(1000.0f), usePhysics(false), objectTable(676) {}
 };
+
+
+
 
 #endif

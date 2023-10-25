@@ -45,7 +45,7 @@ class dictionary {
 
 
         T remove(std::string name);   
-        T& add(std::string name, T value); 
+        T& add(std::string name, T initial); 
         T& entry(std::string name);
 
         T& getRef(int idx);

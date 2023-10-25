@@ -8,35 +8,6 @@ extern render Render;
 extern window Window;
 extern world World;
 
-bool physObject::xBounds(float x_min, float x_max) {
-    if( (x_min + myMesh->radius) < pos.x && pos.x < (x_max - myMesh->radius) ){
-        return true;
-    }
-
-    return false;
-}
-
-bool physObject::yBounds(float y_min, float y_max) {
-    //std::cout << y_min + myMesh->radius << " < " << pos.y << " < " << y_max + myMesh->radius << std::endl;
-
-    if( (y_min + myMesh->radius) < pos.y && pos.y < (y_max - myMesh->radius) ){
-        return true;
-    }
-
-    return false;
-}
-
-int physObject::xAxisRelation(float axis) {
-    if( (axis < pos.x - myMesh->radius) ) return 1;
-    if( (axis > pos.x + myMesh->radius) ) return -1;
-    return 0;
-}
-
-int physObject::yAxisRelation(float axis) {
-    if( (axis < pos.y - myMesh->radius) ) return 1;
-    if( (axis > pos.y + myMesh->radius) ) return -1;
-    return 0;
-}
 
 glm::mat4 physObject::modelMatrix() {
     glm::mat4 model = transformMatrix;
@@ -46,32 +17,22 @@ glm::mat4 physObject::modelMatrix() {
     return model;
 }
 
-float physObject::distanceFrom(glm::vec3 point) {
-    glm::vec3 delta = glm::vec3(point.x - pos.x, point.y - pos.y, point.z - pos.z);
-
-    return (float)sqrt(pow(delta.x,2) + pow(delta.y,2));
-}
-
-void physObject::calculateCollision(physObject& obj) {
-    float distance = distanceFrom(obj.pos);
-
-
-    glm::vec3& force = forceVectors.add(obj.getID(), glm::vec3(0.0f));
-    force = glm::vec3(0.0f);
+glm::vec3 physObject::forceSum() {
     
-    if(distance > (myMesh->radius + obj.myMesh->radius)) return;
-    
-    // imperfect solution, work out the equations silly. 
-    vel = -1.0f * vel;
-    force = -1.1f * forceSum;
+
+    if(isStatic) return glm::vec3(0.0f);
+
+    glm::vec3 forces = glm::vec3(0.0f);
+
+    for(int i = 0; i < forceVectors.size(); i++) {
+        forces += forceVectors.getRef(i);
+    }
+
+    return forces;
 }
 
 // ******************************************************************
 
-void world::addItem(physObject obj, std::string id) {
-    objectTable.add(id, obj).id = id;
-
-} 
 
 physObject world::pullItem(std::string id) {
     return objectTable.remove(id);
@@ -83,22 +44,18 @@ void world::update() {
         physObject& iObject = objectTable.getRef(i);
         iObject.id = objectTable.getID(i);
 
-        if(usePhysics) {
-            calculateMovement(iObject);
-        }
-
+        if(usePhysics) calculateMovement(iObject);        
         Render.drawMesh(iObject.myMesh, iObject.modelMatrix());
     }
 
     for(int i = 0; i < objectTable.size(); i++) {
         physObject& iObject = objectTable.getRef(i);
-        
         calculateForces(iObject);
     }
 }
 
 void world::calculateMovement(physObject& obj) {
-    obj.accel = obj.forceSum / obj.mass;
+    obj.accel = obj.forceSum() / obj.mass;
 
     obj.vel += obj.accel * Window.deltaTime;
     obj.pos += obj.vel * Window.deltaTime;
@@ -112,37 +69,53 @@ void world::calculateForces(physObject& obj) {
 
     gravForce = glm::vec3(0.0f, grav, 0.0f) * obj.mass;
 
-    /*
-    if(obj.yAxisRelation(ground) <= 0) {
-        if(gravForce.y <= 0) 
-            normalFloor = gravForce * -1.0f;
-        
-        if(obj.vel.y - obj.myMesh->radius < 0.0f) obj.vel.y = 0.0f;
-        if(obj.pos.y - obj.myMesh->radius < 0.0f) obj.pos.y = obj.myMesh->radius;
-
-    } else {
-        normalFloor = glm::vec3(0.0f);
-    }
-    */
-
     for(int i = 0; i < objectTable.size(); i++) {
-        
-
         physObject& iObject = objectTable.getRef(i);
 
         if(iObject.getID() != obj.getID()) {
-            
-            obj.calculateCollision(iObject);
+            resolveCollision(obj, iObject);
         }
     }
 
 
     obj.accel = glm::vec3(0.0f);
-    obj.forceSum = glm::vec3(0.0f);
 
-    for(int i = 0; i < obj.forceVectors.size(); i++) {
-        obj.forceSum += obj.forceVectors.getRef(i);
+
+    
+}
+
+float world::distance(glm::vec3 ptA, glm::vec3 ptB) {
+    glm::vec3 delta = glm::vec3(ptA.x - ptB.x, ptA.y - ptB.y, ptA.z - ptB.z);
+
+    return (float)sqrt(pow(delta.x,2) + pow(delta.y,2));
+}
+
+bool world::isColliding(physObject& objA, physObject& objB) {
+    if(distance(objA.pos, objB.pos) > objA.getRadius() + objB.getRadius()) return false;
+
+    return true;
+}
+
+void world::resolveCollision(physObject& objA, physObject& objB) {
+    // assuming they're colliding, current implementation is perfectly kinetic
+        // Ki = Kf
+    glm::vec3& forceA = objA.forceVectors.add(objB.getID(), glm::vec3(0.0f)) = glm::vec3(0.0f);
+    glm::vec3& forceB = objB.forceVectors.add(objA.getID(), glm::vec3(0.0f)) = glm::vec3(0.0f);
+
+    if(!isColliding(objA, objB)) {
+        return;
     }
+    
+    glm::vec3 iVelA = objA.vel;
+    glm::vec3 iVelB = objB.vel;
 
-    if(obj.isStatic) obj.forceSum = glm::vec3(0.0f);
+    glm::vec3 dVA =  ((objA.mass - objB.mass)*iVelA + (2 * objB.mass * iVelB))/(objA.mass + objB.mass);
+    glm::vec3 dVB =  ((objB.mass - objA.mass)*iVelB + (2 * objA.mass * iVelA))/(objA.mass + objB.mass);
+
+    // this is an impulse, so its going to be a force = m dv/dt
+
+    forceA = objA.mass * dVA/Window.deltaTime - objB.forceSum();
+    forceB = objB.mass * dVB/Window.deltaTime - objA.forceSum();
+
+
 }

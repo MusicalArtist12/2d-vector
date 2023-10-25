@@ -39,25 +39,21 @@ int main() {
     mesh* circle = new mesh(genPolygon(100));
 
     World.objectTable.add("circle", physObject(circle)).pos = glm::vec3(0.0, 5.0, 0.0);
-    physObject& Ground = World.objectTable.add("ground", physObject(square));
-
-    Ground.transformMatrix = glm::scale(glm::vec3(1000, 100.0, 1.0));
-    Ground.isStatic = true;
-    Ground.pos = glm::vec3(0.0f, -100.0f, 0.0f);
-    setColor(square, 0.0f, 0.0f, 0.0f, 1.0f);
-
-
-    Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
+    World.objectTable.add("circle 2", physObject(circle)).pos = glm::vec3(0.0, 10.0, 0.0);
+    World.objectTable.add("circle 3", physObject(circle));
+    
+    Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 18);
 
     Render.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
     Render.activeCamera = new camera;
     
     glm::vec3 background_color((102.0f/255.0f), (180.0f/255.0f), (222.0f/255.0f));
 
-
+    
     while(!Window.shouldClose()) {
         Window.refresh();
         ImGui::NewFrame();
+
 
         glClearColor(background_color[0], background_color[1], background_color[2], 1.0f);  
         
@@ -69,10 +65,11 @@ int main() {
         cameraApp(Render.activeCamera);
         windowApp();
         worldApp();
-
+        
         for(int i = 0; i < World.objectTable.size(); i++) {
             objectApp(World.objectTable.getRef(i));
         }
+        
         
         Window.render(); 
     }
@@ -115,7 +112,7 @@ void windowApp() {
 
     ImGui::Begin("Window Info", run);
         ImGui::Text("Clock Rate: %3f", Window.deltaTime);
-        float framerate = 1.0f / Window.deltaTime;
+        float framerate = 1.0f / Window.deltaTime; // this really needs to be an average of like 5...
         ImGui::Text("Framerate: %3f", framerate);
         ImGui::Text("Height: %3u", Window.height);
         ImGui::Text("Width: %3u", Window.width);
@@ -156,13 +153,37 @@ void objectApp(physObject& myObject) {
 
     if(!*run) return;
 
+    glm::vec3& external = myObject.forceVectors.add("External Force", glm::vec3(0.0f));
+
     ImGui::Begin(myObject.getID().c_str(), run);
 
-    ImGui::Text("Position: (%f, %f)", myObject.pos.x, myObject.pos.y);
-    ImGui::Text("Velocity: (%f, %f)", myObject.vel.x, myObject.vel.y);
     ImGui::Text("Acceleration: (%f, %f)", myObject.accel.x, myObject.accel.y);
-    ImGui::Text("Distance from Origin: %f", myObject.distanceFrom(glm::vec3(0.0)));
-    ImGui::Text("Force Vector: (%f, %f)", myObject.forceSum.x, myObject.forceSum.y);
+    ImGui::Text("Force Vector: (%f, %f)", myObject.forceSum().x, myObject.forceSum().y);
+    ImGui::Text("Radius: %f", myObject.getRadius());
+    ImGui::Checkbox("Freeze", &myObject.isStatic);
+
+    ImGui::InputFloat2("External Force", (float *)&external);
+    ImGui::InputFloat2("Position", (float*)&myObject.pos);
+    ImGui::InputFloat2("Velocity", (float*)&myObject.vel);
+
+    ImGui::Text("Force Table");
+
+    if (ImGui::BeginTable(myObject.getID().c_str(), 3)) {
+        
+        for(int i = 0; i < myObject.forceVectors.size(); i++) {
+            
+            ImGui::TableNextRow();
+            
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", myObject.forceVectors.getID(i).c_str());
+            ImGui::TableNextColumn();
+            ImGui::Text("%f", myObject.forceVectors.getRef(i).x);
+            ImGui::TableNextColumn();
+            ImGui::Text("%f", myObject.forceVectors.getRef(i).y);
+
+        }
+        ImGui::EndTable();
+    }
 
     ImGui::End();
 }

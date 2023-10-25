@@ -101,10 +101,10 @@ T dictionary<T>::remove(std::string name) {
 }
 
 template <typename T>
-T& dictionary<T>::add(std::string name, T value) {
+T& dictionary<T>::add(std::string name, T initial) {
     
     bool newEntry;
-    T& entry = dict[hash(name)].add(name, value, newEntry);
+    T& entry = dict[hash(name)].add(name, initial, newEntry);
     if(newEntry) resetCache();
 
     return entry;
