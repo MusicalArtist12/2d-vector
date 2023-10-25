@@ -6,6 +6,7 @@
 
 extern render Render;
 extern window Window;
+extern world World;
 
 bool physObject::xBounds(float x_min, float x_max) {
     if( (x_min + myMesh->radius) < pos.x && pos.x < (x_max - myMesh->radius) ){
@@ -53,11 +54,16 @@ float physObject::distanceFrom(glm::vec3 point) {
 
 void physObject::calculateCollision(physObject& obj) {
     float distance = distanceFrom(obj.pos);
+
+
+    glm::vec3& force = forceVectors.add(obj.getID(), glm::vec3(0.0f));
+    force = glm::vec3(0.0f);
     
-
-    if(distance > myMesh->radius) return;
-
-    //forceVectors.add(obj.getID(), )
+    if(distance > (myMesh->radius + obj.myMesh->radius)) return;
+    
+    // imperfect solution, work out the equations silly. 
+    vel = -1.0f * vel;
+    force = -1.1f * forceSum;
 }
 
 // ******************************************************************
@@ -77,7 +83,7 @@ void world::update() {
         physObject& iObject = objectTable.getRef(i);
         iObject.id = objectTable.getID(i);
 
-        if(usePhysics && !iObject.isStatic) {
+        if(usePhysics) {
             calculateMovement(iObject);
         }
 
@@ -86,11 +92,8 @@ void world::update() {
 
     for(int i = 0; i < objectTable.size(); i++) {
         physObject& iObject = objectTable.getRef(i);
-
-        if(usePhysics && !iObject.isStatic) {
-            calculateForces(iObject);
-        }   
         
+        calculateForces(iObject);
     }
 }
 
@@ -104,11 +107,12 @@ void world::calculateMovement(physObject& obj) {
 void world::calculateForces(physObject& obj) {
     
     // generate default forces if they don't exist
-    glm::vec3& normalFloor = obj.forceVectors.add("physEngine normalFloor", glm::vec3(0.0f));
+    //glm::vec3& normalFloor = obj.forceVectors.add("physEngine normalFloor", glm::vec3(0.0f));
     glm::vec3& gravForce = obj.forceVectors.add("physEngine gravForce", glm::vec3(0.0f));
 
     gravForce = glm::vec3(0.0f, grav, 0.0f) * obj.mass;
 
+    /*
     if(obj.yAxisRelation(ground) <= 0) {
         if(gravForce.y <= 0) 
             normalFloor = gravForce * -1.0f;
@@ -119,6 +123,19 @@ void world::calculateForces(physObject& obj) {
     } else {
         normalFloor = glm::vec3(0.0f);
     }
+    */
+
+    for(int i = 0; i < objectTable.size(); i++) {
+        
+
+        physObject& iObject = objectTable.getRef(i);
+
+        if(iObject.getID() != obj.getID()) {
+            
+            obj.calculateCollision(iObject);
+        }
+    }
+
 
     obj.accel = glm::vec3(0.0f);
     obj.forceSum = glm::vec3(0.0f);
@@ -126,4 +143,6 @@ void world::calculateForces(physObject& obj) {
     for(int i = 0; i < obj.forceVectors.size(); i++) {
         obj.forceSum += obj.forceVectors.getRef(i);
     }
+
+    if(obj.isStatic) obj.forceSum = glm::vec3(0.0f);
 }
