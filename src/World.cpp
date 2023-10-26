@@ -73,7 +73,7 @@ void world::calculateForces(physObject& obj) {
         physObject& iObject = objectTable.getRef(i);
 
         if(iObject.getID() != obj.getID()) {
-            resolveCollision(obj, iObject);
+            obj.resolveCollision(iObject);
         }
     }
 
@@ -90,32 +90,23 @@ float world::distance(glm::vec3 ptA, glm::vec3 ptB) {
     return (float)sqrt(pow(delta.x,2) + pow(delta.y,2));
 }
 
-bool world::isColliding(physObject& objA, physObject& objB) {
-    if(distance(objA.pos, objB.pos) > objA.getRadius() + objB.getRadius()) return false;
+bool physObject::isColliding(physObject& obj) {
+    if(distance(pos, obj.pos) > getRadius() + obj.getRadius()) return false;
 
     return true;
 }
 
-void world::resolveCollision(physObject& objA, physObject& objB) {
+void physObject::resolveCollision(physObject& obj) {
     // assuming they're colliding, current implementation is perfectly kinetic
         // Ki = Kf
-    glm::vec3& forceA = objA.forceVectors.add(objB.getID(), glm::vec3(0.0f)) = glm::vec3(0.0f);
-    glm::vec3& forceB = objB.forceVectors.add(objA.getID(), glm::vec3(0.0f)) = glm::vec3(0.0f);
+    glm::vec3& force = forceVectors.add(obj.getID(), glm::vec3(0.0f)) = glm::vec3(0.0f);
 
-    if(!isColliding(objA, objB)) {
+    if(!isColliding(obj)) {
         return;
     }
     
-    glm::vec3 iVelA = objA.vel;
-    glm::vec3 iVelB = objB.vel;
-
-    glm::vec3 dVA =  ((objA.mass - objB.mass)*iVelA + (2 * objB.mass * iVelB))/(objA.mass + objB.mass);
-    glm::vec3 dVB =  ((objB.mass - objA.mass)*iVelB + (2 * objA.mass * iVelA))/(objA.mass + objB.mass);
-
-    // this is an impulse, so its going to be a force = m dv/dt
-
-    forceA = objA.mass * dVA/Window.deltaTime - objB.forceSum();
-    forceB = objB.mass * dVB/Window.deltaTime - objA.forceSum();
-
+    
 
 }
+
+

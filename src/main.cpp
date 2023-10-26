@@ -40,9 +40,9 @@ int main() {
 
     World.objectTable.add("circle", physObject(circle)).pos = glm::vec3(0.0, 5.0, 0.0);
     World.objectTable.add("circle 2", physObject(circle)).pos = glm::vec3(0.0, 10.0, 0.0);
-    World.objectTable.add("circle 3", physObject(circle));
+    //World.objectTable.add("circle 3", physObject(circle));
     
-    Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 18);
+    Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
 
     Render.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
     Render.activeCamera = new camera;

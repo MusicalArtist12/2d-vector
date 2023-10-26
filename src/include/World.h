@@ -32,6 +32,10 @@ class physObject {
         glm::vec3 forceSum();
         dictionary<glm::vec3> forceVectors;
 
+        void resolveCollision(physObject& obj);
+        bool isColliding(physObject& obj);
+
+
         //bool crossesLine(glm::vec3 ptA, glm::vec3 ptB); // returns true if this object crosses a given line segment
         
         physObject(mesh* shape): 
@@ -59,8 +63,6 @@ class world {
         void calculateMovement(physObject& obj);
 
         float distance(glm::vec3 ptA, glm::vec3 ptB);
-        bool isColliding(physObject& objA, physObject& objB);
-        void resolveCollision(physObject& objA, physObject& objB);
 
 
 
