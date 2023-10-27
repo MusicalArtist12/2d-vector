@@ -156,5 +156,15 @@ int dictionary<T>::size() {
     return _ptrList.size();
 }
 
+template <typename T>
+bool dictionary<T>::hasEntry(std::string name) {
+    try {
+        entry(name);
+    } catch(std::invalid_argument) { return false;}
+
+    return true;
+}
+
+
 
 #endif

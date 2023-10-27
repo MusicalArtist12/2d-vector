@@ -25,7 +25,7 @@ class physObject {
 
         glm::vec3 pos;
         glm::vec3 vel;
-        glm::vec3 accel;
+        glm::vec3 accel() { return forceSum()/mass; }
         
         float mass;
         bool isStatic;
@@ -40,7 +40,7 @@ class physObject {
         
         physObject(mesh* shape): 
             transformMatrix(1.0f), myMesh(shape), radius(shape->radius),
-            pos(0.0f), vel(0.0f), accel(0.0f), mass(1.0f), isStatic(false), forceVectors(26) {}
+            pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), forceVectors(26) {}
 
         glm::mat4 modelMatrix();
 

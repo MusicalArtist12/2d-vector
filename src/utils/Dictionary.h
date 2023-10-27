@@ -49,6 +49,7 @@ class dictionary {
         T& entry(std::string name);
 
         T& getRef(int idx);
+        bool hasEntry(std::string name);
         std::string getID(int idx);
         int size();
         

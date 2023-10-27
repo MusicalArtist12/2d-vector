@@ -20,6 +20,8 @@ void cameraApp(camera* myCam);
 void windowApp();
 void worldApp();
 void objectApp(physObject& myObject);
+void spawnPolyApp();
+
 
 std::vector<vertex> verts = {
     vertex(-1.0, -1.0, 1.0, 1.0, 1.0, 1.0),
@@ -40,8 +42,7 @@ int main() {
 
     World.objectTable.add("circle", physObject(circle)).pos = glm::vec3(0.0, 5.0, 0.0);
     World.objectTable.add("circle 2", physObject(circle)).pos = glm::vec3(0.0, 10.0, 0.0);
-    //World.objectTable.add("circle 3", physObject(circle));
-    
+
     Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
 
     Render.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
@@ -66,10 +67,12 @@ int main() {
         windowApp();
         worldApp();
         
+        
         for(int i = 0; i < World.objectTable.size(); i++) {
             objectApp(World.objectTable.getRef(i));
         }
-        
+
+        spawnPolyApp();
         
         Window.render(); 
     }
@@ -157,7 +160,7 @@ void objectApp(physObject& myObject) {
 
     ImGui::Begin(myObject.getID().c_str(), run);
 
-    ImGui::Text("Acceleration: (%f, %f)", myObject.accel.x, myObject.accel.y);
+    ImGui::Text("Acceleration: (%f, %f)", myObject.accel().x, myObject.accel().y);
     ImGui::Text("Force Vector: (%f, %f)", myObject.forceSum().x, myObject.forceSum().y);
     ImGui::Text("Radius: %f", myObject.getRadius());
     ImGui::Checkbox("Freeze", &myObject.isStatic);
@@ -165,6 +168,7 @@ void objectApp(physObject& myObject) {
     ImGui::InputFloat2("External Force", (float *)&external);
     ImGui::InputFloat2("Position", (float*)&myObject.pos);
     ImGui::InputFloat2("Velocity", (float*)&myObject.vel);
+    
 
     ImGui::Text("Force Table");
 
@@ -180,9 +184,36 @@ void objectApp(physObject& myObject) {
             ImGui::Text("%f", myObject.forceVectors.getRef(i).x);
             ImGui::TableNextColumn();
             ImGui::Text("%f", myObject.forceVectors.getRef(i).y);
-
         }
         ImGui::EndTable();
+    }
+
+    ImGui::End();
+}
+
+void spawnPolyApp() {
+    bool* run = appBools.add("Spawn Polygon", new bool(true));
+
+    if(!*run) return;
+
+    ImGui::Begin("Spawn Polygon", run);
+
+    static char ID[100] = "Hello World";
+    static int numSides = 3;
+    ImGui::InputText("Item ID", ID, IM_ARRAYSIZE(ID));
+    ImGui::SliderInt("Number of Sides", &numSides, 3, 100);
+    bool createObject = false;
+    
+    if(World.objectTable.hasEntry(ID)) {
+        ImGui::Text("Cannot duplicate names");
+    
+    } else {
+        createObject = ImGui::Button("Create");
+    }
+    
+    if(createObject) {
+        mesh* myMesh = new mesh(genPolygon(numSides));
+        World.objectTable.add(std::string(ID), physObject(myMesh));
     }
 
     ImGui::End();

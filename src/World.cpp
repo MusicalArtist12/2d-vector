@@ -31,8 +31,26 @@ glm::vec3 physObject::forceSum() {
     return forces;
 }
 
-// ******************************************************************
+void physObject::resolveCollision(physObject& obj) {
+    // assuming they're colliding, current implementation is perfectly kinetic
+        // Ki = Kf
+    glm::vec3& forceA = forceVectors.add(obj.getID(), glm::vec3(0.0f));
+    glm::vec3& forceB = obj.forceVectors.add(getID(), glm::vec3(0.0f));
 
+
+    if(!isColliding(obj)) {
+        forceA = glm::vec3(0.0f);
+        forceB = glm::vec3(0.0f);
+        return;
+    }
+
+    if(glm::sign(vel) == glm::sign(obj.pos - pos)) {
+        forceA = (-1.0f * (forceSum() - forceA)) - (mass * vel)/Window.deltaTime;
+        forceB = -1.0f * forceA;
+    }
+}
+
+// ******************************************************************
 
 physObject world::pullItem(std::string id) {
     return objectTable.remove(id);
@@ -44,7 +62,7 @@ void world::update() {
         physObject& iObject = objectTable.getRef(i);
         iObject.id = objectTable.getID(i);
 
-        if(usePhysics) calculateMovement(iObject);        
+        if(usePhysics && !iObject.isStatic) calculateMovement(iObject);        
         Render.drawMesh(iObject.myMesh, iObject.modelMatrix());
     }
 
@@ -55,9 +73,9 @@ void world::update() {
 }
 
 void world::calculateMovement(physObject& obj) {
-    obj.accel = obj.forceSum() / obj.mass;
+    glm::vec3 accel = obj.forceSum() / obj.mass;
 
-    obj.vel += obj.accel * Window.deltaTime;
+    obj.vel += accel * Window.deltaTime;
     obj.pos += obj.vel * Window.deltaTime;
 }
 
@@ -77,11 +95,6 @@ void world::calculateForces(physObject& obj) {
         }
     }
 
-
-    obj.accel = glm::vec3(0.0f);
-
-
-    
 }
 
 float world::distance(glm::vec3 ptA, glm::vec3 ptB) {
@@ -94,19 +107,6 @@ bool physObject::isColliding(physObject& obj) {
     if(distance(pos, obj.pos) > getRadius() + obj.getRadius()) return false;
 
     return true;
-}
-
-void physObject::resolveCollision(physObject& obj) {
-    // assuming they're colliding, current implementation is perfectly kinetic
-        // Ki = Kf
-    glm::vec3& force = forceVectors.add(obj.getID(), glm::vec3(0.0f)) = glm::vec3(0.0f);
-
-    if(!isColliding(obj)) {
-        return;
-    }
-    
-    
-
 }
 
 
