@@ -42,17 +42,15 @@ int main() {
         Render.updateCamera();
         Render.activeCamera->InputLoop(Window.deltaTime);
         World.update();
-
-        appApp();
-        cameraApp(Render.activeCamera);
-        windowApp();
-        worldApp();
-        
         
         for(int i = 0; i < World.objectTable.size(); i++) {
             objectApp(World.objectTable.getRef(i));
         }
 
+        appApp();
+        cameraApp(Render.activeCamera);
+        windowApp();
+        worldApp();
         spawnPolyApp();
         
         Window.render(); 
@@ -150,6 +148,8 @@ void objectApp(physObject& myObject) {
     ImGui::InputFloat2("External Force", (float *)&external);
     ImGui::InputFloat2("Position", (float*)&myObject.pos);
     ImGui::InputFloat2("Velocity", (float*)&myObject.vel);
+    
+    ImGui::SliderFloat("Mass", &myObject.mass, 0.01, 100.0);
     
 
     ImGui::Text("Force Table");

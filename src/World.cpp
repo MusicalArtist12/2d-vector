@@ -46,7 +46,8 @@ void physObject::resolveCollision(physObject& obj) {
 
     if(glm::sign(vel) == glm::sign(obj.pos - pos)) {
         forceA = (-1.0f * (forceSum() - forceA)) - (mass * vel)/Window.deltaTime;
-        forceB = -1.0f * forceA;
+        
+        forceB = (-1.0f * (forceSum()));
     }
 }
 
@@ -60,15 +61,15 @@ void world::update() {
 
     for(int i = 0; i < objectTable.size(); i++) {
         physObject& iObject = objectTable.getRef(i);
-        iObject.id = objectTable.getID(i);
-
-        if(usePhysics && !iObject.isStatic) calculateMovement(iObject);        
-        Render.drawMesh(iObject.myMesh, iObject.modelMatrix());
+        calculateForces(iObject);
     }
 
     for(int i = 0; i < objectTable.size(); i++) {
         physObject& iObject = objectTable.getRef(i);
-        calculateForces(iObject);
+        iObject.id = objectTable.getID(i);
+
+        if(usePhysics && !iObject.isStatic) calculateMovement(iObject);        
+        Render.drawMesh(iObject.myMesh, iObject.modelMatrix());
     }
 }
 
