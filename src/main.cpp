@@ -23,26 +23,7 @@ void objectApp(physObject& myObject);
 void spawnPolyApp();
 
 
-std::vector<vertex> verts = {
-    vertex(-1.0, -1.0, 1.0, 1.0, 1.0, 1.0),
-    vertex(1.0, -1.0, 1.0, 1.0, 1.0, 1.0),
-    vertex(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
-    vertex(-1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
-};
-
-std::vector<unsigned int> ind = {
-    0, 1, 2, 
-    0, 2, 3
-};
-
-mesh* square = new mesh(verts, ind);
-
 int main() { 
-    mesh* circle = new mesh(genPolygon(100));
-
-    World.objectTable.add("circle", physObject(circle)).pos = glm::vec3(0.0, 5.0, 0.0);
-    World.objectTable.add("circle 2", physObject(circle)).pos = glm::vec3(0.0, 10.0, 0.0);
-
     Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
 
     Render.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
@@ -164,6 +145,7 @@ void objectApp(physObject& myObject) {
     ImGui::Text("Force Vector: (%f, %f)", myObject.forceSum().x, myObject.forceSum().y);
     ImGui::Text("Radius: %f", myObject.getRadius());
     ImGui::Checkbox("Freeze", &myObject.isStatic);
+    bool deleteMe = ImGui::Button("Delete");
 
     ImGui::InputFloat2("External Force", (float *)&external);
     ImGui::InputFloat2("Position", (float*)&myObject.pos);
@@ -189,6 +171,10 @@ void objectApp(physObject& myObject) {
     }
 
     ImGui::End();
+
+    if(deleteMe) {
+        World.objectTable.remove(myObject.getID());
+    }
 }
 
 void spawnPolyApp() {
@@ -198,7 +184,7 @@ void spawnPolyApp() {
 
     ImGui::Begin("Spawn Polygon", run);
 
-    static char ID[100] = "Hello World";
+    static char ID[100] = "";
     static int numSides = 3;
     ImGui::InputText("Item ID", ID, IM_ARRAYSIZE(ID));
     ImGui::SliderInt("Number of Sides", &numSides, 3, 100);
@@ -206,8 +192,13 @@ void spawnPolyApp() {
     
     if(World.objectTable.hasEntry(ID)) {
         ImGui::Text("Cannot duplicate names");
+    }
     
-    } else {
+    else if(std::string(ID).length() == 0) {
+        ImGui::Text("Name cannot be empty");
+    }
+
+     else {
         createObject = ImGui::Button("Create");
     }
     
