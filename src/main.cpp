@@ -113,8 +113,6 @@ void worldApp() {
     ImGui::Text("");
     ImGui::Text("Number of Objects: %i", World.tableSize());
 
-
-
     if (ImGui::TreeNode("Objects")) {
         for (int i = 0; i < World.tableSize(); i++) {
             // Use SetNextItemOpen() so set the default state of a node to be open. We could

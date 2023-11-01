@@ -23,7 +23,7 @@ class physObject {
         friend class world;
         inline std::string getID() { return id; }
         inline float getRadius() { return radius; }
-        inline glm::vec3 momentum() { return mass * vel; }
+        inline glm::vec3 momentum() { if(isStatic) return glm::vec3(0.0f); return mass * vel; }
 
         glm::vec3 pos;
         glm::vec3 vel;
@@ -58,7 +58,7 @@ class world {
         float ceiling;
         bool usePhysics;
 
-        int countsPerFrame = 50;
+        int countsPerFrame = 500;
 
         void update(float deltaTime);
 
@@ -74,8 +74,6 @@ class world {
         inline int tableSize() { return objectTable.size(); }
         inline physObject& getRef(int idx) { return objectTable.getRef(idx); }
         inline std::string getID(int idx) { return objectTable.getID(idx); }
-
-        
 
         void addGravity(physObject& obj);
         void calculateMovement(physObject& obj, float deltaTime);

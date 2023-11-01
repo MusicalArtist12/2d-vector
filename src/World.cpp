@@ -34,8 +34,10 @@ glm::vec3 physObject::forceSum() {
 // ******************************************************************
 
 void world::update(float deltaTime) {
+
+    if(deltaTime < 0) deltaTime = 0;
     for(int i = 0; i < countsPerFrame; i++) {
-        updateMovement(deltaTime/countsPerFrame);
+        updateMovement(deltaTime/(float)(countsPerFrame));
     }
 
     draw();
@@ -51,15 +53,10 @@ void world::updateMovement(float deltaTime) {
             physObject& jObject = objectTable.getRef(j);
 
             if(isColliding(iObject, jObject)) {
-                if( !iObject.forceVectors.hasEntry(jObject.getID()) || 
-                    !jObject.forceVectors.hasEntry(iObject.getID()) ){
-                        resolveCollision(iObject, jObject, deltaTime);
-                        
-                    }
-
-                
+                if( !iObject.forceVectors.hasEntry(jObject.getID()) || !jObject.forceVectors.hasEntry(iObject.getID()) ){
+                    resolveCollision(iObject, jObject, deltaTime);
+                }
             } 
-            
             else {
                 if( iObject.forceVectors.hasEntry(jObject.getID()) ) iObject.forceVectors.remove(jObject.getID());
                 if( jObject.forceVectors.hasEntry(iObject.getID()) ) jObject.forceVectors.remove(iObject.getID());
@@ -85,36 +82,42 @@ void world::draw() {
     }
 }
 
+
+float getVecAngle(glm::vec3 vector) {
+    if(glm::length(vector) == 0.0) return 0.0f;
+    
+    float angle1;
+
+    if(vector.x > 0) angle1 = glm::atan(vector.y/vector.x);
+    else if(vector.x < 0) angle1 = glm::atan(vector.y/vector.x) - glm::radians(180.0f);
+    else angle1 = glm::radians(90.0f) * vector.y/glm::abs(vector.y);
+
+    return angle1;
+}
+
 void world::resolveCollision(physObject& objA, physObject& objB, float deltaTime) {
+    
     glm::vec3& forceA = objA.forceVectors.add( objB.getID(), glm::vec3(0.0f) );
     glm::vec3& forceB = objB.forceVectors.add( objA.getID(), glm::vec3(0.0f) );
 
-    float angle = glm::abs(glm::atan((objA.pos.y-objB.pos.y)/(objA.pos.x-objB.pos.x)));
+    glm::vec3 AB = objB.pos - objA.pos;
 
-    float momentumAngleA;
-    float momentumAngleB;
+    float angle1 = getVecAngle(AB);
+    float angleAp = getVecAngle(objA.momentum()) - angle1;
+    float angleBp = getVecAngle(objB.momentum()) - angle1;
 
-    if(objA.momentum().x == 0) {
-        momentumAngleA = glm::atan(objA.momentum().y/0.0001);
-    } else {
-        momentumAngleA = glm::atan(objA.momentum().y/objA.momentum().x);
-    }
+    float angleAf = getVecAngle(objA.forceSum()) - angle1;
+    float angleBf = getVecAngle(objB.forceSum()) - angle1;
 
-    if(objB.momentum().y == 0) {
-        momentumAngleB = glm::atan(objB.momentum().y/0.0001);
-    } else {
-        momentumAngleB = glm::atan(objB.momentum().y/objB.momentum().x);
-    }
+    glm::vec3 p_effA = glm::normalize(AB) * glm::length(objA.momentum()) * glm::cos(angleAp);
+    glm::vec3 f_effA = glm::normalize(AB) * glm::length((objA.forceSum())) * glm::cos(angleAf);
+    
+    glm::vec3 p_effB = glm::normalize(AB) * glm::length(objB.momentum()) * glm::cos(angleBp);
+    glm::vec3 f_effB = glm::normalize(AB) * glm::length((objB.forceSum())) * glm::cos(angleBf);
 
-    // add other's momentum
-    forceA = glm::length(objB.momentum()) * glm::vec3(glm::cos(momentumAngleB - angle), glm::sin(momentumAngleB - angle), 0.0f); 
-    forceB = glm::length(objA.momentum()) * glm::vec3(glm::cos(momentumAngleA - angle), glm::sin(momentumAngleA - angle), 0.0f); 
+    forceA = (p_effB - p_effA)/deltaTime;  + (f_effB - f_effA);
+    forceB = (p_effA - p_effB)/deltaTime;  + (f_effB - f_effA);
 
-    // remove own momentum
-    forceA -= glm::length(objA.momentum()) * glm::vec3(glm::cos(momentumAngleA - angle), glm::sin(momentumAngleA - angle), 0.0f);
-    forceB -= glm::length(objB.momentum()) * glm::vec3(glm::cos(momentumAngleB - angle), glm::sin(momentumAngleB - angle), 0.0f);
-    forceA /= deltaTime;
-    forceB /= deltaTime;
 }
 
 void world::calculateMovement(physObject& obj, float deltaTime) {
