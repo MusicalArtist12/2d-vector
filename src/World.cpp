@@ -86,8 +86,6 @@ void world::draw() {
 }
 
 void world::resolveCollision(physObject& objA, physObject& objB, float deltaTime) {
-    // assuming they're colliding, current implementation is perfectly kinetic
-        // Ki = Kf
     glm::vec3& forceA = objA.forceVectors.add( objB.getID(), glm::vec3(0.0f) );
     glm::vec3& forceB = objB.forceVectors.add( objA.getID(), glm::vec3(0.0f) );
 
@@ -109,15 +107,14 @@ void world::resolveCollision(physObject& objA, physObject& objB, float deltaTime
     }
 
     // add other's momentum
-    forceA = glm::sin(angle) * glm::length(objB.momentum()) * glm::vec3(glm::cos(momentumAngleB - angle), glm::sin(momentumAngleB - angle), 0.0f); 
-    forceB = glm::sin(angle) * glm::length(objA.momentum()) * glm::vec3(glm::cos(momentumAngleA - angle), glm::sin(momentumAngleA - angle), 0.0f); 
+    forceA = glm::length(objB.momentum()) * glm::vec3(glm::cos(momentumAngleB - angle), glm::sin(momentumAngleB - angle), 0.0f); 
+    forceB = glm::length(objA.momentum()) * glm::vec3(glm::cos(momentumAngleA - angle), glm::sin(momentumAngleA - angle), 0.0f); 
 
     // remove own momentum
-    forceA -= glm::sin(angle) * glm::length(objA.momentum()) * glm::vec3(glm::cos(momentumAngleA - angle), glm::sin(momentumAngleA - angle), 0.0f);
-    forceB -= glm::sin(angle) * glm::length(objB.momentum()) * glm::vec3(glm::cos(momentumAngleB - angle), glm::sin(momentumAngleB - angle), 0.0f);
+    forceA -= glm::length(objA.momentum()) * glm::vec3(glm::cos(momentumAngleA - angle), glm::sin(momentumAngleA - angle), 0.0f);
+    forceB -= glm::length(objB.momentum()) * glm::vec3(glm::cos(momentumAngleB - angle), glm::sin(momentumAngleB - angle), 0.0f);
     forceA /= deltaTime;
     forceB /= deltaTime;
-
 }
 
 void world::calculateMovement(physObject& obj, float deltaTime) {
