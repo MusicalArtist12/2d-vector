@@ -19,18 +19,18 @@ void appApp();
 void cameraApp(camera* myCam);
 void windowApp();
 void worldApp();
-void objectApp(physObject& myObject);
+void objectSubApp(physObject& myObject);
 void spawnPolyApp();
 
 
 int main() { 
-    Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 36);
+    Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 18);
 
     Render.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
     Render.activeCamera = new camera;
     
     glm::vec3 background_color((102.0f/255.0f), (180.0f/255.0f), (222.0f/255.0f));
-
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     
     while(!Window.shouldClose()) {
         Window.refresh();
@@ -41,11 +41,8 @@ int main() {
         
         Render.updateCamera();
         Render.activeCamera->InputLoop(Window.deltaTime);
-        World.update();
-        
-        for(int i = 0; i < World.objectTable.size(); i++) {
-            objectApp(World.objectTable.getRef(i));
-        }
+
+        World.update(Window.deltaTime);
 
         appApp();
         cameraApp(Render.activeCamera);
@@ -111,69 +108,124 @@ void worldApp() {
 
     ImGui::Text("Physics Settings");
     ImGui::InputFloat("Gravity", &World.grav);
+    ImGui::InputInt("Counts Per Frame", &World.countsPerFrame, 1);
     ImGui::Checkbox("Use Physics", &World.usePhysics);
     ImGui::Text("");
-    ImGui::Text("Number of Objects: %i", World.objectTable.size());
+    ImGui::Text("Number of Objects: %i", World.tableSize());
 
-    for(int i = 0; i < World.objectTable.size(); i++) {
-        std::string appName = "Object: " + World.objectTable.getID(i);
 
-        bool* myBool = appBools.add(appName, new bool(false));
 
-        ImGui::Checkbox(World.objectTable.getID(i).c_str(), myBool);
+    if (ImGui::TreeNode("Objects")) {
+        for (int i = 0; i < World.tableSize(); i++) {
+            // Use SetNextItemOpen() so set the default state of a node to be open. We could
+            // also use TreeNodeEx() with the ImGuiTreeNodeFlags_DefaultOpen flag to achieve the same thing!
+            if (i == 0) ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+
+            if (ImGui::TreeNode( (void*)(intptr_t)i, "%s", World.getID(i).c_str()) ) {
+                objectSubApp(World.getRef(i));
+                ImGui::TreePop();
+            }
+        }
+        ImGui::TreePop();
     }
 
     ImGui::End();
-
 }
 
 
-void objectApp(physObject& myObject) {
-    std::string appName = "Object: " + myObject.getID();
-
-    bool* run = appBools.add(appName, new bool(true));
-
-    if(!*run) return;
+void objectSubApp(physObject& myObject) {
 
     glm::vec3& external = myObject.forceVectors.add("External Force", glm::vec3(0.0f));
 
-    ImGui::Begin(myObject.getID().c_str(), run);
+    ImGui::PushID(&myObject);
+    
+    static int clicked = 0;
 
-    ImGui::Text("Acceleration: (%f, %f)", myObject.accel().x, myObject.accel().y);
-    ImGui::Text("Force Vector: (%f, %f)", myObject.forceSum().x, myObject.forceSum().y);
-    ImGui::Text("Radius: %f", myObject.getRadius());
-    ImGui::Checkbox("Freeze", &myObject.isStatic);
+    if(myObject.isStatic && ImGui::Button("Unfreeze")) {
+        clicked = (clicked + 1) % 2;
+        myObject.isStatic = clicked;
+    } 
+
+    else if(!myObject.isStatic && ImGui::Button("freeze")) {
+        clicked = (clicked + 1) % 2;
+        myObject.isStatic = clicked;
+    }
+
+
+    ImGui::SameLine();
+    
     bool deleteMe = ImGui::Button("Delete");
 
-    ImGui::InputFloat2("External Force", (float *)&external);
-    ImGui::InputFloat2("Position", (float*)&myObject.pos);
-    ImGui::InputFloat2("Velocity", (float*)&myObject.vel);
-    
-    ImGui::SliderFloat("Mass", &myObject.mass, 0.01, 100.0);
-    
+    if (ImGui::BeginTable((myObject.getID() + "Info").c_str(), 3)) {
+        ImGui::PushID(&external);
 
-    ImGui::Text("Force Table");
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("External Force");
+        ImGui::TableNextColumn();
+        ImGui::InputFloat2("", (float *)&external);
+        ImGui::TableNextColumn();
+        ImGui::Text(" (%f)", glm::length(external));
 
-    if (ImGui::BeginTable(myObject.getID().c_str(), 3)) {
-        
-        for(int i = 0; i < myObject.forceVectors.size(); i++) {
-            
-            ImGui::TableNextRow();
-            
-            ImGui::TableNextColumn();
-            ImGui::Text("%s", myObject.forceVectors.getID(i).c_str());
-            ImGui::TableNextColumn();
-            ImGui::Text("%f", myObject.forceVectors.getRef(i).x);
-            ImGui::TableNextColumn();
-            ImGui::Text("%f", myObject.forceVectors.getRef(i).y);
-        }
+        ImGui::PopID();
+
+        ImGui::PushID(&myObject.pos);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Position");
+        ImGui::TableNextColumn();
+        ImGui::InputFloat2("", (float*)&myObject.pos);
+        ImGui::TableNextColumn();
+        ImGui::Text(" (%f)", glm::length(myObject.pos));
+
+        ImGui::PopID();
+        ImGui::PushID(&myObject.vel);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Velocity");
+        ImGui::TableNextColumn();
+        ImGui::InputFloat2("", (float*)&myObject.vel);
+        ImGui::TableNextColumn();
+        ImGui::Text(" (%f)", glm::length(myObject.vel));
+       
+        ImGui::PopID();
         ImGui::EndTable();
     }
 
-    ImGui::End();
+    ImGui::SliderFloat("Mass", &myObject.mass, 0.01, 100.0);
+    
+    ImGui::Text("Radius: %f", myObject.getRadius());
+    ImGui::Text("Acceleration: (%f, %f) (%f)", myObject.accel().x, myObject.accel().y, glm::length(myObject.accel()));
+    ImGui::Text("Momentum: (%f, %f) (%f)", myObject.momentum().x, myObject.momentum().y, glm::length(myObject.momentum()));
+    ImGui::Text("Net Force Vector: (%f, %f) (%f)", myObject.forceSum().x, myObject.forceSum().y, glm::length(myObject.forceSum()));
+
+    ImGui::PopID();
+
+    if (ImGui::TreeNode("Force Table")) {
+
+        if (ImGui::BeginTable(myObject.getID().c_str(), 3)) {
+            
+            for(int i = 0; i < myObject.forceVectors.size(); i++) {
+                
+                ImGui::TableNextRow();
+                
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", myObject.forceVectors.getID(i).c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%f", myObject.forceVectors.getRef(i).x);
+                ImGui::TableNextColumn();
+                ImGui::Text("%f", myObject.forceVectors.getRef(i).y);
+            }
+            ImGui::EndTable();
+        }
+
+        ImGui::TreePop();
+    }
 
     if(deleteMe) {
-        World.objectTable.remove(myObject.getID());
+        World.remove(myObject.getID());
     }
 }
 
@@ -190,7 +242,7 @@ void spawnPolyApp() {
     ImGui::SliderInt("Number of Sides", &numSides, 3, 100);
     bool createObject = false;
     
-    if(World.objectTable.hasEntry(ID)) {
+    if(World.hasEntry(ID)) {
         ImGui::Text("Cannot duplicate names");
     }
     
@@ -204,7 +256,8 @@ void spawnPolyApp() {
     
     if(createObject) {
         mesh* myMesh = new mesh(genPolygon(numSides));
-        World.objectTable.add(std::string(ID), physObject(myMesh));
+        World.add(std::string(ID), physObject(myMesh));
+        
     }
 
     ImGui::End();

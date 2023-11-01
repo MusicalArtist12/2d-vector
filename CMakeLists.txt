@@ -33,7 +33,7 @@ target_include_directories(a.out
         ${SRC_DIR}/include
         ${SRC_DIR}/
         ${PROJECT_SOURCE_DIR}/external/glm/
-        ${PROJECT_SOURCE_DIR}/external/imgui/include/
+        ${PROJECT_SOURCE_DIR}/external/imgui/
         ${PROJECT_SOURCE_DIR}/external/glad/include/
         ${PROJECT_SOURCE_DIR}/external/glfw/include/
 )
