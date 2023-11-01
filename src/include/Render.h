@@ -13,12 +13,10 @@
 class render {
     public:
         shader* activeShader;
-        camera* activeCamera;
-
-        void updateCamera();
+        
+        void updateCamera(camera& cam);
         void drawMesh(mesh* Mesh, glm::mat4 model);
         void generateBuffer(mesh* Mesh);
-
 };
 
 #endif

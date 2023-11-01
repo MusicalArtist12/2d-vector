@@ -71,9 +71,15 @@ void window::refresh() {
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
     glfwGetFramebufferSize(ID, &width, &height);
     glViewport(0, 0, width, height);
+    
+    glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);  
+    
+
+    myCamera.InputLoop(deltaTime);
 }
 
 void window::render() {

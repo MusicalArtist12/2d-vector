@@ -75,6 +75,7 @@ void setColor(mesh* myMesh, float r, float g, float b, float a) {
         myMesh->vertices[i].rgba[1] = g;
         myMesh->vertices[i].rgba[2] = b;
         myMesh->vertices[i].rgba[3] = a;
-
     }
+
+    myMesh->generated = false;
 }

@@ -16,14 +16,17 @@ class physObject {
     private: 
         std::string id; 
         glm::mat4 transformMatrix; // currently does not change/ affect radius (used for ). this is a significant issue.
-        mesh* myMesh;
+        
         float radius;
 
     public: 
+        mesh* myMesh;
+
         friend class world;
         inline std::string getID() { return id; }
         inline float getRadius() { return radius; }
         inline glm::vec3 momentum() { if(isStatic) return glm::vec3(0.0f); return mass * vel; }
+        float kineticEnergy() { return 0.5*mass*glm::pow(glm::length(vel),2); }
 
         glm::vec3 pos;
         glm::vec3 vel;
@@ -37,7 +40,7 @@ class physObject {
         //bool crossesLine(glm::vec3 ptA, glm::vec3 ptB); // returns true if this object crosses a given line segment
         
         physObject(mesh* shape): 
-            transformMatrix(1.0f), myMesh(shape), radius(shape->radius),
+            transformMatrix(1.0f), radius(shape->radius), myMesh(shape),
             pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), forceVectors(26) {}
 
         glm::mat4 modelMatrix();

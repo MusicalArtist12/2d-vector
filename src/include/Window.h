@@ -7,6 +7,8 @@
 #include <imgui.h>
 #include <iostream>
 
+#include "Camera.h"
+
 class window {
     private:
         int initGLFW();
@@ -23,7 +25,11 @@ class window {
         int height;
         float deltaTime;
         float lastFrame;
-        
+
+        camera myCamera;
+
+        glm::vec3 clearColor = glm::vec3((102.0f/255.0f), (180.0f/255.0f), (222.0f/255.0f));
+
         void refresh();
         void render();
         void terminate();

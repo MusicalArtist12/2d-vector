@@ -16,7 +16,7 @@ world World;
 dictionary<bool *> appBools(26);
 
 void appApp();
-void cameraApp(camera* myCam);
+void cameraApp(camera& myCam);
 void windowApp();
 void worldApp();
 void objectSubApp(physObject& myObject);
@@ -27,25 +27,17 @@ int main() {
     Window.loadFont("data/fonts/SourceCodePro-Regular.otf", 18);
 
     Render.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
-    Render.activeCamera = new camera;
     
-    glm::vec3 background_color((102.0f/255.0f), (180.0f/255.0f), (222.0f/255.0f));
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     
     while(!Window.shouldClose()) {
         Window.refresh();
-        ImGui::NewFrame();
-
-
-        glClearColor(background_color[0], background_color[1], background_color[2], 1.0f);  
-        
-        Render.updateCamera();
-        Render.activeCamera->InputLoop(Window.deltaTime);
 
         World.update(Window.deltaTime);
+        Render.updateCamera(Window.myCamera);
 
         appApp();
-        cameraApp(Render.activeCamera);
+        cameraApp(Window.myCamera);
         windowApp();
         worldApp();
         spawnPolyApp();
@@ -70,16 +62,16 @@ void appApp() {
     ImGui::End();
 }
 
-void cameraApp(camera* myCam) {
+void cameraApp(camera& myCam) {
     bool* run = appBools.add("Camera App", new bool(true));
     
     if(!*run) return; 
 
     ImGui::Begin("Camera Info", run);
 
-    ImGui::InputFloat2("Camera Position", (float *)&myCam->pos);
-    ImGui::InputFloat("Camera Scale", &myCam->scale);
-    ImGui::InputFloat("Camera Speed", &myCam->speed);
+    ImGui::InputFloat2("Camera Position", (float *)&myCam.pos);
+    ImGui::InputFloat("Camera Scale", &myCam.scale);
+    ImGui::InputFloat("Camera Speed", &myCam.speed);
 
     ImGui::End();
 
@@ -149,10 +141,17 @@ void objectSubApp(physObject& myObject) {
         myObject.isStatic = clicked;
     }
 
-
-    ImGui::SameLine();
+    
     
     bool deleteMe = ImGui::Button("Delete");
+
+    static glm::vec3 color = glm::vec3(1.0f);
+
+    bool changeColor = ImGui::Button("Set Color");
+    ImGui::SameLine();
+    ImGui::InputFloat3("Color", (float*)&color); // there's a better input method for this
+
+    if(changeColor) setColor(myObject.myMesh, color.x, color.y, color.z, 1.0f);
 
     if (ImGui::BeginTable((myObject.getID() + "Info").c_str(), 3)) {
         ImGui::PushID(&external);
@@ -198,6 +197,7 @@ void objectSubApp(physObject& myObject) {
     ImGui::Text("Acceleration: (%f, %f) (%f)", myObject.accel().x, myObject.accel().y, glm::length(myObject.accel()));
     ImGui::Text("Momentum: (%f, %f) (%f)", myObject.momentum().x, myObject.momentum().y, glm::length(myObject.momentum()));
     ImGui::Text("Net Force Vector: (%f, %f) (%f)", myObject.forceSum().x, myObject.forceSum().y, glm::length(myObject.forceSum()));
+    ImGui::Text("Kinetic Energy: %f", myObject.kineticEnergy());
 
     ImGui::PopID();
 

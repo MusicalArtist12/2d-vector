@@ -8,7 +8,6 @@
 extern render Render;
 extern world World;
 
-
 glm::mat4 physObject::modelMatrix() {
     glm::mat4 model = transformMatrix;
 
@@ -115,8 +114,8 @@ void world::resolveCollision(physObject& objA, physObject& objB, float deltaTime
     glm::vec3 p_effB = glm::normalize(AB) * glm::length(objB.momentum()) * glm::cos(angleBp);
     glm::vec3 f_effB = glm::normalize(AB) * glm::length((objB.forceSum())) * glm::cos(angleBf);
 
-    forceA = (p_effB - p_effA)/deltaTime;  + (f_effB - f_effA);
-    forceB = (p_effA - p_effB)/deltaTime;  + (f_effB - f_effA);
+    forceA = (p_effB - p_effA)/deltaTime - f_effA;
+    forceB = (p_effA - p_effB)/deltaTime - f_effB;
 
 }
 
