@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1698825707 "/home/julia/projects/2d-vector/math_notes/notes.tex" "notes.pdf" "notes" 1698825707 0
-  "/home/julia/projects/2d-vector/math_notes/notes.tex" 1698825706 3549 719f62eefafda41982ed738713b6d19a ""
+["pdflatex"] 1698826584 "/home/julia/projects/2d-vector/math_notes/notes.tex" "notes.pdf" "notes" 1698826585 0
+  "/home/julia/projects/2d-vector/math_notes/notes.tex" 1698826584 3614 acb98cd5dc57f6f2bd67bcd1bfcaaf3b ""
   "/usr/share/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc" 1689853683 3486 c7eadf5dcc57b3b2d11736679f6636ba ""
   "/usr/share/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc" 1689853683 2405 5dcf2c1b967ee25cc46c58cd52244aed ""
   "/usr/share/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc" 1689853683 2840 216e6e45ad352e2456e1149f28885bee ""
@@ -63,8 +63,8 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1689853683 40684 9b9ec0b4288972636ff6a3b9c4238efc ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1697765336 4483110 adb1e1d04498b9576f1f17c4219c5e03 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1697765283 6768058 b4d7196cd76d95f18c20556e74d8ad69 ""
-  "notes.aux" 1698825707 242 9c13a34688d38cb448fa2fb037eb7313 "pdflatex"
-  "notes.tex" 1698825706 3549 719f62eefafda41982ed738713b6d19a ""
+  "notes.aux" 1698826585 242 9c13a34688d38cb448fa2fb037eb7313 "pdflatex"
+  "notes.tex" 1698826584 3614 acb98cd5dc57f6f2bd67bcd1bfcaaf3b ""
   (generated)
   "notes.aux"
   "notes.log"
