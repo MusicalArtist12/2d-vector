@@ -54,7 +54,6 @@ class world {
         void updateMovement(float deltaTime);
         void draw();
 
-
     public: 
         float grav;
         float ground;
@@ -81,6 +80,7 @@ class world {
         void addGravity(physObject& obj);
         void calculateMovement(physObject& obj, float deltaTime);
 
+        // used to remove forces that should not exist.
         bool isValidForce(std::string ID);
         
         void resolveCollision(physObject& objA, physObject& objB, float deltaTime);

@@ -10,9 +10,10 @@
 #include "Mesh.h"
 
 class shader {
-    public:
+    private:
         unsigned int ID;
 
+    public:
         void unbind();
         void bind();
 

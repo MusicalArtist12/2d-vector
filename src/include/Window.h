@@ -20,12 +20,13 @@ class window {
 
         GLFWwindow* ID;
 
+        float lastFrame;
+
     public:
         int width;
         int height;
         float deltaTime;
-        float lastFrame;
-
+        
         camera myCamera;
 
         glm::vec3 clearColor = glm::vec3((102.0f/255.0f), (180.0f/255.0f), (222.0f/255.0f));

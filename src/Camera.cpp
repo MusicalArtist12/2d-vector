@@ -1,23 +1,19 @@
 #include "Camera.h"
 
-#include "Window.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
 #include <imgui.h>
 
-extern window Window;
-
-glm::mat4 camera::projection() {
+glm::mat4 camera::projection(window& Window) {
     float relWidth = Window.width/(2 * scale);
     float relHeight = Window.height/(2 * scale);
     
-    left = -1 * relWidth;
-    right = 1* relWidth;
-    bottom = -1 * relHeight;
-    top = 1 * relHeight;
+    float left = -1 * relWidth;
+    float right = 1* relWidth;
+    float bottom = -1 * relHeight;
+    float top = 1 * relHeight;
 
     return glm::ortho(left, right, bottom, top, 0.0f, 100.0f);
 }
@@ -28,22 +24,22 @@ glm::mat4 camera::view() {
     return view;
 }
 
-void camera::InputLoop(float deltaTime) {
+void camera::InputLoop(window& Window) {
     
     if(Window.readKey(GLFW_KEY_UP) == GLFW_PRESS) {
-        pos += glm::vec2(0.0, speed/scale) * deltaTime;
+        pos += glm::vec2(0.0, speed/scale) * Window.deltaTime;
     }
     if(Window.readKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
-        pos -= glm::vec2(0.0, speed/scale) * deltaTime;
+        pos -= glm::vec2(0.0, speed/scale) * Window.deltaTime;
     }
     if(Window.readKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
-        pos -= glm::vec2(speed/scale, 0.0) * deltaTime;
+        pos -= glm::vec2(speed/scale, 0.0) * Window.deltaTime;
     }
     if(Window.readKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        pos += glm::vec2(speed/scale, 0.0) * deltaTime;
+        pos += glm::vec2(speed/scale, 0.0) * Window.deltaTime;
     }
     if(Window.readKey(GLFW_KEY_PAGE_UP) == GLFW_PRESS && scale < maxScale) {
-        scale += (speed * scale * 0.001) * deltaTime;
+        scale += (speed * scale * 0.001) * Window.deltaTime;
 
         if(scale > maxScale) {
             scale = maxScale;
@@ -51,7 +47,7 @@ void camera::InputLoop(float deltaTime) {
 
     }
     if(Window.readKey(GLFW_KEY_PAGE_DOWN) == GLFW_PRESS && scale > minScale) {
-        scale -= (speed * scale * 0.001) * deltaTime;
+        scale -= (speed * scale * 0.001) * Window.deltaTime;
 
         if(scale < minScale) {
             scale = minScale;

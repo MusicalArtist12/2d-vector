@@ -6,27 +6,22 @@
 #include <glm/gtx/transform.hpp>
 
 #include <imgui.h>
+#include "Window.h"
 
 class camera {
     private:
         const float maxScale = 10000;
         const float minScale = 1.00;
-
-    public:
-        float left;
-        float right;
-        float bottom;
-        float top;
         
+    public:
         float scale;
         float speed;
 
-        glm::vec2 pos;
-        
+        glm::vec2 pos; 
         glm::mat4 view();
-        glm::mat4 projection();
+        glm::mat4 projection(window& Window);
 
-        void InputLoop(float deltaTime);
+        void InputLoop(window& Window);
         
         camera(): scale(100), speed(1000.0), pos(0.0f, 0.0f) {}
 
