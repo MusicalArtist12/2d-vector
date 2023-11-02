@@ -6,9 +6,9 @@
 
 #include <imgui.h>
 
-glm::mat4 camera::projection(window& Window) {
-    float relWidth = Window.width/(2 * scale);
-    float relHeight = Window.height/(2 * scale);
+glm::mat4 camera::projection(int width, int height) {
+    float relWidth = width/(2 * scale);
+    float relHeight = height/(2 * scale);
     
     float left = -1 * relWidth;
     float right = 1* relWidth;

@@ -6,7 +6,9 @@
 #include <glm/gtx/transform.hpp>
 
 #include <imgui.h>
+
 #include "Window.h"
+
 
 class camera {
     private:
@@ -19,7 +21,7 @@ class camera {
 
         glm::vec2 pos; 
         glm::mat4 view();
-        glm::mat4 projection(window& Window);
+        glm::mat4 projection(int width, int height);
 
         void InputLoop(window& Window);
         

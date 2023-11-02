@@ -1,8 +1,8 @@
 #include "Render.h"
 
-void render::updateCamera(camera& cam) {
+void render::updateCamera(camera& cam, int width, int height) {
     activeShader->bind();
-    activeShader->setView(cam.view(), cam.projection());
+    activeShader->setView(cam.view(), cam.projection(width, height));
 }
 
 void render::drawMesh(mesh* Mesh, glm::mat4 model) {

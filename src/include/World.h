@@ -56,8 +56,6 @@ class world {
 
     public: 
         float grav;
-        float ground;
-        float ceiling;
         bool usePhysics;
 
         int countsPerFrame = 500;
@@ -86,7 +84,7 @@ class world {
         void resolveCollision(physObject& objA, physObject& objB, float deltaTime);
         bool isColliding(physObject& objA, physObject& objB);
 
-        world(): objectTable(676), grav(0.0f), ground(0.0f), ceiling(1000.0f), usePhysics(false) {}
+        world(): objectTable(676), grav(0.0f), usePhysics(false) {}
         
 };
 

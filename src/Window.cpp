@@ -79,7 +79,6 @@ void window::refresh() {
     glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);  
     
 
-    myCamera.InputLoop(deltaTime);
 }
 
 void window::render() {

@@ -6,8 +6,9 @@
 
 #include <imgui.h>
 #include <iostream>
-
-#include "Camera.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 class window {
     private:
@@ -20,14 +21,11 @@ class window {
 
         GLFWwindow* ID;
 
-        float lastFrame;
-
     public:
         int width;
         int height;
         float deltaTime;
-        
-        camera myCamera;
+        float lastFrame;
 
         glm::vec3 clearColor = glm::vec3((102.0f/255.0f), (180.0f/255.0f), (222.0f/255.0f));
 
