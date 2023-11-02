@@ -11,5 +11,6 @@ add_library(imgui
     imgui_tables.cpp 
     imgui_widgets.cpp 
     imgui.cpp
+    imgui_demo.cpp
 )
     

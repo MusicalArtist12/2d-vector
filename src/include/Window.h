@@ -32,9 +32,7 @@ class window {
         void refresh();
         void render();
         void terminate();
-
-        ImFont* loadFont(const char* path, float size);
-
+        
         int readKey(int key);
         int readMouseButton(int key);
         void readMousePos(double* x, double* y);

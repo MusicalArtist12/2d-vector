@@ -52,6 +52,7 @@ int window::initImGui() {
     ImGui_ImplGlfw_InitForOpenGL(ID, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
+
     return 1;
 }
 
@@ -76,15 +77,15 @@ void window::refresh() {
     glfwGetFramebufferSize(ID, &width, &height);
     glViewport(0, 0, width, height);
     
-    glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);  
     
-
 }
 
 void window::render() {
     updateClock();
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);  
 }
 
 void window::terminate() {
@@ -92,11 +93,6 @@ void window::terminate() {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
     glfwTerminate();
-}
-
-ImFont* window::loadFont(const char* path, float size) {
-    ImGuiIO& io = ImGui::GetIO();
-    return io.Fonts->AddFontFromFileTTF(path, size);
 }
 
 int window::readKey(int key) {

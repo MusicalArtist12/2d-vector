@@ -424,6 +424,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
     }
 
     ImGui::Text("dear imgui says hello! (%s) (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
+    ImGui::Text("julia also says hi!!");
     ImGui::Spacing();
 
     IMGUI_DEMO_MARKER("Help");

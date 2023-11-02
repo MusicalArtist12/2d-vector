@@ -7,6 +7,11 @@ void render::updateCamera(camera& cam, int width, int height) {
 
 void render::drawMesh(mesh* Mesh, glm::mat4 model) {
     activeShader->bind();
+    if(drawWireframe) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 
     if(!Mesh->generated) {
         generateBuffer(Mesh);
