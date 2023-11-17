@@ -40,6 +40,7 @@ struct mesh {
 
     IndexMode mode = TRIANGLE;
 
+    // this needs to change to a method since its not guaranteed...
     float radius = 0; // set by the constructor and determines the circle that entraps the object
 
     mesh(std::vector<vertex>& v, std::vector<unsigned int>& i);

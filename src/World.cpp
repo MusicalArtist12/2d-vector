@@ -9,7 +9,7 @@ extern render Render;
 extern world World;
 
 glm::mat4 physObject::modelMatrix() {
-    glm::mat4 model = transformMatrix;
+    glm::mat4 model = glm::mat4(1.0f);
 
     model = glm::translate(glm::mat4(1.0f), pos) * model;
 
@@ -39,13 +39,20 @@ void world::update(float deltaTime) {
         updateMovement(deltaTime/(float)(countsPerFrame));
     }
 
-    draw();
+    for(int i = 0; i < objectTable.size(); i++) {
+        physObject& iObject = objectTable.getRef(i);
+        Render.renderQueue.push_back(drawData(iObject.myMesh, iObject.modelMatrix()));
+
+    }
+
 }
 
 
 void world::updateMovement(float deltaTime) {
     for(int i = 0; i < objectTable.size(); i++) {
+
         physObject& iObject = objectTable.getRef(i);
+        
         addGravity(iObject);
 
         for(int j = 0; j < objectTable.size(); j++) {
@@ -72,15 +79,6 @@ void world::updateMovement(float deltaTime) {
         if(usePhysics && !iObject.isStatic) calculateMovement(iObject, deltaTime);  
     }
 }
-
-void world::draw() {
-    for(int i = 0; i < objectTable.size(); i++) {
-        physObject& iObject = objectTable.getRef(i);
-
-        Render.drawMesh(iObject.myMesh, iObject.modelMatrix());
-    }
-}
-
 
 float getVecAngle(glm::vec3 vector) {
     if(glm::length(vector) == 0.0) return 0.0f;

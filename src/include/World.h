@@ -15,7 +15,6 @@
 class physObject {
     private: 
         std::string id; 
-        glm::mat4 transformMatrix; // currently does not change/ affect radius (used for ). this is a significant issue.
         
         float radius;
 
@@ -40,7 +39,7 @@ class physObject {
         //bool crossesLine(glm::vec3 ptA, glm::vec3 ptB); // returns true if this object crosses a given line segment
         
         physObject(mesh* shape): 
-            transformMatrix(1.0f), radius(shape->radius), myMesh(shape),
+            radius(shape->radius), myMesh(shape),
             pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), forceVectors(26) {}
 
         glm::mat4 modelMatrix();
@@ -52,7 +51,6 @@ class world {
         dictionary<physObject> objectTable; 
 
         void updateMovement(float deltaTime);
-        void draw();
 
     public: 
         float grav;
@@ -72,6 +70,7 @@ class world {
         inline physObject& entry(std::string name) { return objectTable.entry(name); }
         inline bool hasEntry(std::string name) { return objectTable.hasEntry(name); }
         inline int tableSize() { return objectTable.size(); }
+        
         inline physObject& getRef(int idx) { return objectTable.getRef(idx); }
         inline std::string getID(int idx) { return objectTable.getID(idx); }
 

@@ -64,6 +64,7 @@ int main() {
         Render.updateCamera(mainCam, Window.width, Window.height);
         mainCam.InputLoop(Window);
         
+        Render.draw();
         Window.render(); 
     }
 
