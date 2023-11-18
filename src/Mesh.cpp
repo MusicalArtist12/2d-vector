@@ -3,17 +3,32 @@
 #include <cmath>
 #include <iostream>
 
-#include <glm/glm.hpp>
-
 mesh::mesh(std::vector<vertex>& v, std::vector<unsigned int>& i)
-    : vertices(v), index(i), generated(false) {}
+    : vertices(v), index(i), generated(false) {
+
+
+    }
 
 float mesh::radius() {
     float radius = 0.0f;
 
+    // adjust each point to match the center, then find the distance
+    for(int i = 0; i < vertices.size(); i++) {
+        vertices[i].pos[0] = vertices[i].pos[0] - center().x;
+        vertices[i].pos[1] = vertices[i].pos[1] - center().y;
+    
+        float distance = sqrt( pow(vertices[i].pos[0], 2) + pow((vertices[i].pos[1]), 2) );
+
+        if(radius < distance) radius = distance;
+    }
+
+    return radius;
+}
+
+glm::vec3 mesh::center() {
     // find the center via the mean
-    float x_mean = 0;
-    float y_mean = 0;
+    float x_mean = 0.0f;
+    float y_mean = 0.0f;
 
     for(int i = 0; i < vertices.size(); i++) {
         x_mean += vertices[i].pos[0];
@@ -23,17 +38,7 @@ float mesh::radius() {
     x_mean = x_mean / vertices.size();
     y_mean = y_mean / vertices.size();
 
-    // adjust each point to match the center, then find the distance
-    for(int i = 0; i < vertices.size(); i++) {
-        vertices[i].pos[0] = vertices[i].pos[0] - x_mean;
-        vertices[i].pos[1] = vertices[i].pos[1] - y_mean;
-    
-        float distance = sqrt( pow(vertices[i].pos[0], 2) + pow((vertices[i].pos[1]), 2) );
-
-        if(radius < distance) radius = distance;
-    }
-
-    return radius;
+    return glm::vec3(x_mean, y_mean, 0.0f);
 }
 
 mesh genPolygon(int numSides) {

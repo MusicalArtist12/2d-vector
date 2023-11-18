@@ -3,6 +3,7 @@
 
 #include <glad/gl.h>     
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #include <vector>
 
@@ -42,6 +43,7 @@ struct mesh {
 
     mesh(std::vector<vertex>& v, std::vector<unsigned int>& i);
     float radius();
+    glm::vec3 center();
 };
 
 void setColor(mesh* myMesh, float r, float g, float b, float a);

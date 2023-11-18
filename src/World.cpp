@@ -1,6 +1,8 @@
 #include "World.h"
 #include "Shader.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 extern world World;
 
 float getVecAngle(glm::vec3 vector) {
@@ -64,6 +66,14 @@ bool physObject::isColliding(physObject& objB) {
     return false;
 }
 
+physObject::physObject(mesh shape, std::string id):
+    ID(id), myMesh(shape),
+    pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), forceVectors(26) {
+        for(int i = 0; i < vertices.size(); i++) {
+            vertices.push_back(&myMesh.vertices[i]);
+        }
+}
+
 // ******************************************************************
 
 void world::update(float deltaTime, renderQueue& RenderQueue) {
@@ -75,7 +85,7 @@ void world::update(float deltaTime, renderQueue& RenderQueue) {
 
     for(int i = 0; i < objectTable.size(); i++) {
         physObject& iObj = objectTable.getRef(i);
-        RenderQueue.queue.push_back(drawData(iObj.myMesh, iObj.modelMatrix()));
+        RenderQueue.queue.push_back(drawData(&iObj.myMesh, iObj.modelMatrix()));
     }
 }
 

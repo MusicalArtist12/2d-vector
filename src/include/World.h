@@ -15,20 +15,33 @@
 
 float getVecAngle(glm::vec3 vector);
 
+struct physVertex {
+    vertex* data;
+    float mass;
+    glm::vec3 velocity;
+
+    physVertex(vertex* v): data(v) {}
+
+};
+
 class physObject {
     public: 
         const std::string ID;
-        mesh* myMesh;
+        mesh myMesh;
 
         glm::vec3 pos;
         glm::vec3 vel;
-        glm::vec3 accel() { return forceSum()/mass; }
 
+        std::vector<physVertex> vertices;
+        
         float mass;
         bool isStatic;
+
         dictionary<glm::vec3> forceVectors;
         
         glm::vec3 forceSum();
+
+        inline glm::vec3 accel() { return forceSum()/mass; }
         inline glm::vec3 momentum() { if(isStatic) return glm::vec3(0.0f); return mass * vel; }
         inline float kineticEnergy() { return 0.5*mass*glm::pow(glm::length(vel),2); }
 
@@ -37,16 +50,13 @@ class physObject {
 
         std::string getID();
 
-        inline float radius() { return myMesh->radius(); }
+        inline float radius() { return myMesh.radius(); }
 
         //bool crossesLine(glm::vec3 ptA, glm::vec3 ptB); // returns true if this object crosses a given line segment
         
-        physObject(mesh* shape, std::string id): 
-            ID(id), myMesh(shape),
-            pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), forceVectors(26) {}
+        physObject(mesh shape, std::string id);
 
         glm::mat4 modelMatrix();
-
 };
 
 class world {
@@ -58,16 +68,14 @@ class world {
 
         dictionary<physObject> objectTable;
 
-    public: 
-        
-        
+    public:   
         float grav;
         bool usePhysics;
-
         int countsPerFrame = 500;
 
         void update(float deltaTime, renderQueue& queue);
 
+        // ensure that the dictionary ID matches the object ID
         inline physObject& add(physObject value) { 
             physObject& obj = objectTable.add(value.ID, value);
             return obj; 
@@ -76,16 +84,14 @@ class world {
         inline physObject remove(std::string name) { return objectTable.remove(name); }
         inline physObject& entry(std::string name) { return objectTable.entry(name); }
         inline bool hasEntry(std::string name) { return objectTable.hasEntry(name); }
-        inline int tableSize() { return objectTable.size(); }
         
+        inline int tableSize() { return objectTable.size(); }
         inline physObject& getRef(int idx) { return objectTable.getRef(idx); }
-        inline std::string getID(int idx) { return objectTable.getID(idx); }
 
         // used to remove forces that should not exist.
         bool isValidForce(std::string ID);
         
         world(): objectTable(676), grav(0.0f), usePhysics(false) {}
-        
 };
 
 

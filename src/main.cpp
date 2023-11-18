@@ -35,8 +35,8 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.Fonts->AddFontFromFileTTF("data/fonts/SourceCodePro-Regular.otf", 18);
 
-    World.add(physObject(new mesh(genPolygon(8)), "meep"));
-    World.add(physObject(new mesh(genPolygon(8)), "moop"));
+    World.add(physObject(mesh(genPolygon(8)), "meep"));
+    World.add(physObject(mesh(genPolygon(5)), "moop"));
 
     while(!Window.shouldClose()) {
         Window.refresh();
@@ -127,14 +127,13 @@ void worldApp(bool* run, std::string ID) {
     ImGui::Text("Number of Objects: %i", World.tableSize());
 
     for (int i = 0; i < World.tableSize(); i++) {
-        if (ImGui::CollapsingHeader( World.getID(i).c_str()) ) {
+        if (ImGui::CollapsingHeader( World.getRef(i).ID.c_str() ) ) {
             objectSubApp(World.getRef(i));
         }
     }
 
     ImGui::End();
 }
-
 
 void objectSubApp(physObject& myObject) {
     ImGui::PushID(&myObject);
@@ -150,17 +149,17 @@ void objectSubApp(physObject& myObject) {
     if(ImGui::TreeNode("Mesh Data")) {
         ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x, 260), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-        for(int i = 0; i < myObject.myMesh->vertices.size(); i++) {
-            ImGui::PushID(&myObject.myMesh->vertices[i]);
-            ImGui::DragFloat2("Position", myObject.myMesh->vertices[i].pos);
-            ImGui::SameLine(); ImGui::ColorEdit3("Color", myObject.myMesh->vertices[i].rgba);
+        for(int i = 0; i < myObject.myMesh.vertices.size(); i++) {
+            ImGui::PushID(&myObject.myMesh.vertices[i]);
+            ImGui::DragFloat2("Position", myObject.myMesh.vertices[i].pos);
+            ImGui::SameLine(); ImGui::ColorEdit3("Color", myObject.myMesh.vertices[i].rgba);
             ImGui::PopID();
         }
 
         ImGui::EndChild();
         ImGui::TreePop();
 
-        if(ImGui::Button("Update Mesh")) myObject.myMesh->generated=false;
+        if(ImGui::Button("Update Mesh")) myObject.myMesh.generated=false;
     }
 
     ImGui::PopID();
