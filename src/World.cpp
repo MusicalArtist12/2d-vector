@@ -1,12 +1,21 @@
 #include "World.h"
-#include "Render.h"
+
 
 #include "Shader.h"
 
-#include <set>
-
-extern render Render;
 extern world World;
+
+float getVecAngle(glm::vec3 vector) {
+    if(glm::length(vector) == 0.0) return 0.0f;
+    
+    float angle1;
+
+    if(vector.x > 0) angle1 = glm::atan(vector.y/vector.x);
+    else if(vector.x < 0) angle1 = glm::atan(vector.y/vector.x) - glm::radians(180.0f);
+    else angle1 = glm::radians(90.0f) * vector.y/glm::abs(vector.y);
+
+    return angle1;
+}
 
 glm::mat4 physObject::modelMatrix() {
     glm::mat4 model = glm::mat4(1.0f);
@@ -30,9 +39,39 @@ glm::vec3 physObject::forceSum() {
     return forces;
 }
 
+void physObject::resolveCollision(physObject& objB, float deltaTime) {
+    
+    glm::vec3& forceA = forceVectors.add( objB.getID(), glm::vec3(0.0f) );
+
+    glm::vec3 AB = objB.pos - pos;
+
+    float angle1 = getVecAngle(AB);
+    float angleAp = getVecAngle(momentum()) - angle1;
+    float angleBp = getVecAngle(objB.momentum()) - angle1;
+    float angleAf = getVecAngle(forceSum()) - angle1;
+
+    glm::vec3 f_effA = glm::normalize(AB) * glm::length((forceSum())) * glm::cos(angleAf);
+    glm::vec3 p_effB = glm::normalize(AB) * glm::length(objB.momentum()) * glm::cos(angleBp);
+    glm::vec3 p_effA = glm::normalize(AB) * glm::length(momentum()) * glm::cos(angleAp);
+
+    forceA = (p_effB - p_effA)/deltaTime - f_effA;
+
+}
+
+bool physObject::isColliding(physObject& objB) {
+    if(getID() == objB.getID()) return false;
+
+
+    if(glm::distance(pos, objB.pos) <= getRadius() + objB.getRadius()) {
+        return true;
+    }
+
+    return false;
+}
+
 // ******************************************************************
 
-void world::update(float deltaTime) {
+void world::update(float deltaTime, renderQueue& RenderQueue) {
 
     if(deltaTime < 0) deltaTime = 0;
     for(int i = 0; i < countsPerFrame; i++) {
@@ -40,84 +79,49 @@ void world::update(float deltaTime) {
     }
 
     for(int i = 0; i < objectTable.size(); i++) {
-        physObject& iObject = objectTable.getRef(i);
-        Render.renderQueue.push_back(drawData(iObject.myMesh, iObject.modelMatrix()));
-
+        physObject& iObj = objectTable.getRef(i);
+        RenderQueue.queue.push_back(drawData(iObj.myMesh, iObj.modelMatrix()));
     }
-
 }
-
 
 void world::updateMovement(float deltaTime) {
     for(int i = 0; i < objectTable.size(); i++) {
 
         physObject& iObject = objectTable.getRef(i);
         
-        addGravity(iObject);
-
-        for(int j = 0; j < objectTable.size(); j++) {
-            physObject& jObject = objectTable.getRef(j);
-
-            if(isColliding(iObject, jObject)) {
-                if( !iObject.forceVectors.hasEntry(jObject.getID()) || !jObject.forceVectors.hasEntry(iObject.getID()) ){
-                    resolveCollision(iObject, jObject, deltaTime);
-                }
-            } 
-            else {
-                if( iObject.forceVectors.hasEntry(jObject.getID()) ) iObject.forceVectors.remove(jObject.getID());
-                if( jObject.forceVectors.hasEntry(iObject.getID()) ) jObject.forceVectors.remove(iObject.getID());
-            }
-
-        }
-
-        
+        if(usePhysics) updateCollisions(iObject, deltaTime);
     }
 
     for(int i = 0; i < objectTable.size(); i++) {
         physObject& iObject = objectTable.getRef(i);
-
+        
         if(usePhysics && !iObject.isStatic) calculateMovement(iObject, deltaTime);  
     }
 }
 
-float getVecAngle(glm::vec3 vector) {
-    if(glm::length(vector) == 0.0) return 0.0f;
-    
-    float angle1;
+void world::updateCollisions(physObject& obj, float deltaTime) {
+    for(int j = 0; j < objectTable.size(); j++) {
+        physObject& iObj = objectTable.getRef(j);
 
-    if(vector.x > 0) angle1 = glm::atan(vector.y/vector.x);
-    else if(vector.x < 0) angle1 = glm::atan(vector.y/vector.x) - glm::radians(180.0f);
-    else angle1 = glm::radians(90.0f) * vector.y/glm::abs(vector.y);
-
-    return angle1;
+        if(obj.isColliding(iObj)) {
+            if( !obj.forceVectors.hasEntry(iObj.getID()) || !iObj.forceVectors.hasEntry(obj.getID()) ){
+                obj.resolveCollision(iObj, deltaTime);
+                iObj.resolveCollision(obj, deltaTime);
+            }
+        } 
+        
+        else {
+            if( obj.forceVectors.hasEntry(iObj.getID()) ) obj.forceVectors.remove(iObj.getID());
+            if( iObj.forceVectors.hasEntry(obj.getID()) ) iObj.forceVectors.remove(obj.getID());
+        }
+    }  
 }
 
-void world::resolveCollision(physObject& objA, physObject& objB, float deltaTime) {
-    
-    glm::vec3& forceA = objA.forceVectors.add( objB.getID(), glm::vec3(0.0f) );
-    glm::vec3& forceB = objB.forceVectors.add( objA.getID(), glm::vec3(0.0f) );
 
-    glm::vec3 AB = objB.pos - objA.pos;
-
-    float angle1 = getVecAngle(AB);
-    float angleAp = getVecAngle(objA.momentum()) - angle1;
-    float angleBp = getVecAngle(objB.momentum()) - angle1;
-
-    float angleAf = getVecAngle(objA.forceSum()) - angle1;
-    float angleBf = getVecAngle(objB.forceSum()) - angle1;
-
-    glm::vec3 p_effA = glm::normalize(AB) * glm::length(objA.momentum()) * glm::cos(angleAp);
-    glm::vec3 f_effA = glm::normalize(AB) * glm::length((objA.forceSum())) * glm::cos(angleAf);
-    
-    glm::vec3 p_effB = glm::normalize(AB) * glm::length(objB.momentum()) * glm::cos(angleBp);
-    glm::vec3 f_effB = glm::normalize(AB) * glm::length((objB.forceSum())) * glm::cos(angleBf);
-
-    forceA = (p_effB - p_effA)/deltaTime - f_effA;
-    forceB = (p_effA - p_effB)/deltaTime - f_effB;
-
-}
 
 void world::calculateMovement(physObject& obj, float deltaTime) {
+    addGravity(obj);
+    
     glm::vec3 accel = obj.forceSum() / obj.mass;
 
     // possibly add a max-distance check here to prevent phasing through items.
@@ -129,18 +133,6 @@ void world::calculateMovement(physObject& obj, float deltaTime) {
 void world::addGravity(physObject& obj) {
     glm::vec3& gravForce = obj.forceVectors.add("gravForce", glm::vec3(0.0f));
     gravForce = glm::vec3(0.0f, grav, 0.0f) * obj.mass;
-}
-
-
-bool world::isColliding(physObject& objA, physObject& objB) {
-    if(objA.getID() == objB.getID()) return false;
-
-
-    if(glm::distance(objA.pos, objB.pos) <= objA.getRadius() + objB.getRadius()) {
-        return true;
-    }
-
-    return false;
 }
 
 bool world::isValidForce(std::string ID) {

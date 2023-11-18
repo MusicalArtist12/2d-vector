@@ -12,7 +12,7 @@
 #include "World.h"
 
 window Window("Title");
-render Render;
+renderQueue RenderQueue;
 world World;
 camera mainCam;
 
@@ -28,7 +28,7 @@ void spawnPolyApp(bool* run, std::string ID);
 
 
 int main() { 
-    Render.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
+    RenderQueue.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
     
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -36,6 +36,7 @@ int main() {
     io.Fonts->AddFontFromFileTTF("data/fonts/SourceCodePro-Regular.otf", 18);
 
     World.add("mine", physObject(new mesh(genPolygon(8))));
+    World.add("meep", physObject(new mesh(genPolygon(8))));
 
     
     while(!Window.shouldClose()) {
@@ -60,11 +61,9 @@ int main() {
 
         if(*appBools.add("Demo Window", new bool(true))) { ImGui::ShowDemoWindow(); }
         
-        World.update(Window.deltaTime);
-        Render.updateCamera(mainCam, Window.width, Window.height);
         mainCam.InputLoop(Window);
-        
-        Render.draw();
+        World.update(Window.deltaTime, RenderQueue);
+        RenderQueue.draw(mainCam, Window.width, Window.height);
         Window.render(); 
     }
 
@@ -108,8 +107,8 @@ void windowApp(bool* run, std::string ID) {
 
         ImGui::Text("Draw Wireframe: ");
         ImGui::SameLine();
-        if(Render.drawWireframe == false and ImGui::Button("Enable")) Render.drawWireframe = true;
-        if(Render.drawWireframe == true and ImGui::Button("Disable")) Render.drawWireframe = false;
+        if(RenderQueue.drawWireframe == false and ImGui::Button("Enable")) RenderQueue.drawWireframe = true;
+        if(RenderQueue.drawWireframe == true and ImGui::Button("Disable")) RenderQueue.drawWireframe = false;
 
     ImGui::End();
 }

@@ -18,20 +18,18 @@ struct drawData {
     drawData(mesh* m, glm::mat4 mod): myMesh(m), model(mod) {}
 };
 
-class render {
+class renderQueue {
     private:
         void drawMesh(drawData& data);
 
     public:
         shader* activeShader;
-
-        std::vector<drawData> renderQueue;
+        std::vector<drawData> queue;
         
         bool drawWireframe = false;
-        void updateCamera(camera& cam, int width, int height);
         void generateBuffer(mesh* Mesh);
 
-        void draw();
+        void draw(camera& cam, int width, int height);
 };
 
 #endif
