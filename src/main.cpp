@@ -35,10 +35,9 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.Fonts->AddFontFromFileTTF("data/fonts/SourceCodePro-Regular.otf", 18);
 
-    World.add("mine", physObject(new mesh(genPolygon(8))));
-    World.add("meep", physObject(new mesh(genPolygon(8))));
+    World.add(physObject(new mesh(genPolygon(8)), "meep"));
+    World.add(physObject(new mesh(genPolygon(8)), "moop"));
 
-    
     while(!Window.shouldClose()) {
         Window.refresh();
         
@@ -102,7 +101,6 @@ void windowApp(bool* run, std::string ID) {
         ImGui::Text("Height: %3u", Window.height);
         ImGui::Text("Width: %3u", Window.width);
 
-        
         ImGui::ColorPicker3("background", (float*)&Window.clearColor);
 
         ImGui::Text("Draw Wireframe: ");

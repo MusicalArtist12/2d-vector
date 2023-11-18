@@ -1,6 +1,4 @@
 #include "World.h"
-
-
 #include "Shader.h"
 
 extern world World;
@@ -40,8 +38,7 @@ glm::vec3 physObject::forceSum() {
 }
 
 void physObject::resolveCollision(physObject& objB, float deltaTime) {
-    
-    glm::vec3& forceA = forceVectors.add( objB.getID(), glm::vec3(0.0f) );
+    glm::vec3& forceA = forceVectors.add( objB.ID, glm::vec3(0.0f) );
 
     glm::vec3 AB = objB.pos - pos;
 
@@ -55,14 +52,12 @@ void physObject::resolveCollision(physObject& objB, float deltaTime) {
     glm::vec3 p_effA = glm::normalize(AB) * glm::length(momentum()) * glm::cos(angleAp);
 
     forceA = (p_effB - p_effA)/deltaTime - f_effA;
-
 }
 
 bool physObject::isColliding(physObject& objB) {
-    if(getID() == objB.getID()) return false;
+    if(ID == objB.ID) return false;
 
-
-    if(glm::distance(pos, objB.pos) <= getRadius() + objB.getRadius()) {
+    if(glm::distance(pos, objB.pos) <= radius() + objB.radius()) {
         return true;
     }
 
@@ -104,15 +99,15 @@ void world::updateCollisions(physObject& obj, float deltaTime) {
         physObject& iObj = objectTable.getRef(j);
 
         if(obj.isColliding(iObj)) {
-            if( !obj.forceVectors.hasEntry(iObj.getID()) || !iObj.forceVectors.hasEntry(obj.getID()) ){
+            if( !obj.forceVectors.hasEntry(iObj.ID) || !iObj.forceVectors.hasEntry(obj.ID) ){
                 obj.resolveCollision(iObj, deltaTime);
                 iObj.resolveCollision(obj, deltaTime);
             }
         } 
-        
+
         else {
-            if( obj.forceVectors.hasEntry(iObj.getID()) ) obj.forceVectors.remove(iObj.getID());
-            if( iObj.forceVectors.hasEntry(obj.getID()) ) iObj.forceVectors.remove(obj.getID());
+            if( obj.forceVectors.hasEntry(iObj.ID) ) obj.forceVectors.remove(iObj.ID);
+            if( iObj.forceVectors.hasEntry(obj.ID) ) iObj.forceVectors.remove(obj.ID);
         }
     }  
 }

@@ -16,37 +16,33 @@
 float getVecAngle(glm::vec3 vector);
 
 class physObject {
-    private: 
-        std::string id; 
-        
-        float radius;
-
     public: 
+        const std::string ID;
         mesh* myMesh;
 
         glm::vec3 pos;
         glm::vec3 vel;
         glm::vec3 accel() { return forceSum()/mass; }
+
         float mass;
         bool isStatic;
         dictionary<glm::vec3> forceVectors;
-
-        friend class world;
         
         glm::vec3 forceSum();
-        inline std::string getID() { return id; }
-        inline float getRadius() { return radius; }
         inline glm::vec3 momentum() { if(isStatic) return glm::vec3(0.0f); return mass * vel; }
         inline float kineticEnergy() { return 0.5*mass*glm::pow(glm::length(vel),2); }
 
         void resolveCollision(physObject& objB, float deltaTime);
         bool isColliding(physObject& objB);
 
+        std::string getID();
+
+        inline float radius() { return myMesh->radius(); }
 
         //bool crossesLine(glm::vec3 ptA, glm::vec3 ptB); // returns true if this object crosses a given line segment
         
-        physObject(mesh* shape): 
-            radius(shape->radius), myMesh(shape),
+        physObject(mesh* shape, std::string id): 
+            ID(id), myMesh(shape),
             pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), forceVectors(26) {}
 
         glm::mat4 modelMatrix();
@@ -55,11 +51,16 @@ class physObject {
 
 class world {
     private:
-        dictionary<physObject> objectTable; 
-
         void updateMovement(float deltaTime);
+        void addGravity(physObject& obj);
+        void calculateMovement(physObject& obj, float deltaTime);
+        void updateCollisions(physObject& obj, float deltaTime);
+
+        dictionary<physObject> objectTable;
 
     public: 
+        
+        
         float grav;
         bool usePhysics;
 
@@ -67,9 +68,8 @@ class world {
 
         void update(float deltaTime, renderQueue& queue);
 
-        inline physObject& add(std::string name, physObject value) { 
-            physObject& obj = objectTable.add(name, value);
-            obj.id = name;
+        inline physObject& add(physObject value) { 
+            physObject& obj = objectTable.add(value.ID, value);
             return obj; 
         }
 
@@ -80,10 +80,6 @@ class world {
         
         inline physObject& getRef(int idx) { return objectTable.getRef(idx); }
         inline std::string getID(int idx) { return objectTable.getID(idx); }
-
-        void addGravity(physObject& obj);
-        void calculateMovement(physObject& obj, float deltaTime);
-        void updateCollisions(physObject& obj, float deltaTime);
 
         // used to remove forces that should not exist.
         bool isValidForce(std::string ID);
