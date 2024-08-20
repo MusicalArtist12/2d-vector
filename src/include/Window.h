@@ -39,7 +39,9 @@ class window {
 
         void updateClock();
 
-        bool shouldClose() { return glfwWindowShouldClose(ID); }
+        bool shouldClose() { 
+            return glfwWindowShouldClose(ID); 
+        }
 
         window(const char* t);
 };

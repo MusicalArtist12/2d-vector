@@ -30,24 +30,24 @@ void shader::generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, vertex* verti
 
     glBindVertexArray(*VAO);
 
-        glGenBuffers(1, VBO);
-        glGenBuffers(1, EBO);
+    glGenBuffers(1, VBO);
+    glGenBuffers(1, EBO);
 
-        // VBO
-        glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-        glBufferData(GL_ARRAY_BUFFER, (vSize * sizeof(vertex)), vertices, GL_STATIC_DRAW);
-        // type of buffer, size of buffer we want to pass, data, how its managed
-        
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (iSize * sizeof(GLuint)), index, GL_STATIC_DRAW);
+    // VBO
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+    glBufferData(GL_ARRAY_BUFFER, (vSize * sizeof(vertex)), vertices, GL_STATIC_DRAW);
+    // type of buffer, size of buffer we want to pass, data, how its managed
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (iSize * sizeof(GLuint)), index, GL_STATIC_DRAW);
 
-        // Position
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
-        glEnableVertexAttribArray(0);
+    // Position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
+    glEnableVertexAttribArray(0);
 
-        // vertex rgba
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(3* sizeof(float)));
-        glEnableVertexAttribArray(1);
+    // vertex rgba
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(3* sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0); 
 }
@@ -69,7 +69,9 @@ void shader::setUniform3fv(const std::string& name, glm::mat3 matrix) {
     int matrixID = glGetUniformLocation(ID, name.c_str());
     glUniformMatrix3fv(matrixID, 1, GL_FALSE, &matrix[0][0]);
 
-    if(matrixID == -1) std::cout << name << " cannot be found" << std::endl;
+    if (matrixID == -1) {
+        std::cout << name << " cannot be found" << std::endl;
+    }
 
 }
 
@@ -79,7 +81,9 @@ void shader::setUniform4fv(const std::string& name, glm::mat4 matrix) {
     int matrixID = glGetUniformLocation(ID, name.c_str());
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, &matrix[0][0]);
 
-    if(matrixID == -1) std::cout << name << " cannot be found" << std::endl;
+    if(matrixID == -1) {
+        std::cout << name << " cannot be found" << std::endl;
+    }
 
 }
 
@@ -89,7 +93,9 @@ void shader::setUniform1i(const std::string& name, int val) {
     int ufID = glGetUniformLocation(ID, name.c_str());
     glUniform1i(ufID, val);
 
-    if(ufID == -1) std::cout << name << " cannot be found" << std::endl;
+    if (ufID == -1) {
+        std::cout << name << " cannot be found" << std::endl;
+    }
 }
 
 void shader::setUniform1f(const std::string& name, float val) {
@@ -98,7 +104,9 @@ void shader::setUniform1f(const std::string& name, float val) {
     int ufID = glGetUniformLocation(ID, name.c_str());
     glUniform1f(ufID, val);
 
-    if(ufID == -1) std::cout << name << " cannot be found" << std::endl;
+    if (ufID == -1) {
+        std::cout << name << " cannot be found" << std::endl;
+    }
 }
 
 void shader::setUniform3f(const std::string& name, glm::vec3 val) {
@@ -107,7 +115,9 @@ void shader::setUniform3f(const std::string& name, glm::vec3 val) {
     int ufID = glGetUniformLocation(ID, name.c_str());
     glUniform3f(ufID, val.x, val.y, val.z);
 
-    if(ufID == -1) std::cout << name << " cannot be found" << std::endl;
+    if (ufID == -1) {
+        std::cout << name << " cannot be found" << std::endl;
+    }
 }
 
 void shader::setUniform4f(const std::string& name, glm::vec4 val) {
@@ -115,8 +125,10 @@ void shader::setUniform4f(const std::string& name, glm::vec4 val) {
     
     int ufID = glGetUniformLocation(ID, name.c_str());
     glUniform4f(ufID, val.x, val.y, val.z, val.w);
-
-    if(ufID == -1) std::cout << name << " cannot be found" << std::endl;
+    
+    if (ufID == -1) {
+        std::cout << name << " cannot be found" << std::endl;
+    }
 }
 
 shader::shader(const char* vertex_path, const char* fragment_path) {
@@ -148,12 +160,11 @@ shader::shader(const char* vertex_path, const char* fragment_path) {
 
     int success;
     char infoLog[512];
-    // print compile errors if any
+
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
+    if (!success) {
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        std::cout << "Vertex shader failed to compile\n" << infoLog << std::endl;
     };
 
     unsigned int fragmentShader;
@@ -162,10 +173,9 @@ shader::shader(const char* vertex_path, const char* fragment_path) {
     glCompileShader(fragmentShader);
 
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
+    if (!success) {
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+        std::cout << "Fragment shader failed to compile\n" << infoLog << std::endl;
     };
 
     ID = glCreateProgram();
@@ -175,10 +185,9 @@ shader::shader(const char* vertex_path, const char* fragment_path) {
     glLinkProgram(ID); 
 
     glGetProgramiv(ID, GL_LINK_STATUS, &success);
-    if(!success)
-    {
+    if (!success) {
         glGetProgramInfoLog(ID, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        std::cout << "Shader program linking failed\n" << infoLog << std::endl;
         std::cin.ignore();
     }
 

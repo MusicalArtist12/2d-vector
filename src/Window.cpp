@@ -5,7 +5,7 @@
 #include <imgui.h>
 
 int window::initGLFW() {
-    if(glfwInit() == 0) {
+    if (glfwInit() == 0) {
         std::cout << "Failed to initalize GLFW" << std::endl;
         return 0;
     }
@@ -19,7 +19,7 @@ int window::initGLFW() {
 
 int window::initWindow() {
     ID = glfwCreateWindow(width, height, title, NULL, NULL);
-    if(ID == NULL) {
+    if (ID == NULL) {
         std::cout << "Failed to create Window" << std::endl;
         glfwTerminate();   
 
@@ -104,7 +104,7 @@ int window::readKey(int key) {
 
 int window::readMouseButton(int key) {
     ImGuiIO& io = ImGui::GetIO();
-    if(io.WantCaptureMouse) {
+    if (io.WantCaptureMouse) {
         return 0;
     } 
 
@@ -113,7 +113,7 @@ int window::readMouseButton(int key) {
 
 void window::readMousePos(double* x, double* y) {
     ImGuiIO& io = ImGui::GetIO();
-    if(io.WantCaptureMouse) {
+    if (io.WantCaptureMouse) {
         return;
     } 
 

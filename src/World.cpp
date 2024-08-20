@@ -6,7 +6,9 @@
 extern world World;
 
 float getVecAngle(glm::vec3 vector) {
-    if(glm::length(vector) == 0.0) return 0.0f;
+    if (glm::length(vector) == 0.0) {
+        return 0.0f;
+    }
     
     float angle1;
 
@@ -28,19 +30,24 @@ glm::mat4 physObject::modelMatrix() {
 glm::vec3 physObject::forceSum() {
     glm::vec3 forces = glm::vec3(0.0f);
 
-    if(isStatic) return forces;
-
-    for(int i = 0; i < forceVectors.size(); i++) {
-        if(!World.isValidForce(forceVectors.getID(i))) forceVectors.remove(forceVectors.getID(i)); 
-        else forces += forceVectors.getRef(i);
+    if (isStatic) {
+        return forces;
     }
 
+    for (int i = 0; i < forceVectors.size(); i++) {
+        if (!World.isValidForce(forceVectors.getID(i))) {
+            forceVectors.remove(forceVectors.getID(i)); 
+        }
+        else {
+            forces += forceVectors.getRef(i);
+        }
+    }
 
     return forces;
 }
 
 void physObject::resolveCollision(physObject& objB, float deltaTime) {
-    glm::vec3& forceA = forceVectors.add( objB.ID, glm::vec3(0.0f) );
+    glm::vec3& forceA = forceVectors.add(objB.ID, glm::vec3(0.0f));
 
     glm::vec3 AB = objB.pos - pos;
 
@@ -54,29 +61,31 @@ void physObject::resolveCollision(physObject& objB, float deltaTime) {
     glm::vec3 p_effA = glm::normalize(AB) * glm::length(momentum()) * glm::cos(angleAp);
 
     forceA = (p_effB - p_effA)/deltaTime - f_effA;
+
+    if (collisionCallback != nullptr) {
+        collisionCallback(*this, objB, deltaTime);
+    }
 }
 
 bool physObject::isColliding(physObject& objB) {
-    if(ID == objB.ID) return false;
-
-    if(glm::distance(pos, objB.pos) <= radius() + objB.radius()) {
+    if(ID == objB.ID) { 
+        return false;
+    }
+    if (glm::distance(pos, objB.pos) <= radius() + objB.radius()) {
         return true;
     }
 
     return false;
 }
 
-physObject::physObject(mesh shape, std::string id):
-    ID(id), myMesh(shape),
-    pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), forceVectors(26) {
-        for(int i = 0; i < vertices.size(); i++) {
-            vertices.push_back(&myMesh.vertices[i]);
-        }
-}
+physObject::physObject(mesh shape, std::string id): ID(id), myMesh(shape), pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), forceVectors(26), collisionCallback(nullptr) {}
 
-
-void physObject::addKeyCallback(keyCallback callback) {
-    callbacks.push_back(callback);
+void physObject::addKeyCallback(int key, int state, void (*callback)(physObject&)) {
+    callbacks.push_back({
+        key,
+        state,
+        callback
+    });
 }
 
 void physObject::inputLoop(window& Window) {
@@ -90,21 +99,19 @@ void physObject::inputLoop(window& Window) {
 // ******************************************************************
 
 void world::update(window& Window, renderQueue& RenderQueue) {
-    float deltaTime = Window.deltaTime;
+    float deltaTime = Window.deltaTime > 0 ? Window.deltaTime : 0;
    
-    for(int i = 0; i < objectTable.size(); i++) {
+    for (int i = 0; i < objectTable.size(); i++) {
         physObject& iObj = objectTable.getRef(i);
         
         iObj.inputLoop(Window);
     }
 
-
-    if(deltaTime < 0) deltaTime = 0;
-    for(int i = 0; i < countsPerFrame; i++) {
+    for (int i = 0; i < countsPerFrame; i++) {
         updateMovement(deltaTime/(float)(countsPerFrame));
     }
 
-    for(int i = 0; i < objectTable.size(); i++) {
+    for (int i = 0; i < objectTable.size(); i++) {
         physObject& iObj = objectTable.getRef(i);
         
         iObj.inputLoop(Window);
@@ -113,40 +120,43 @@ void world::update(window& Window, renderQueue& RenderQueue) {
 }
 
 void world::updateMovement(float deltaTime) {
-    for(int i = 0; i < objectTable.size(); i++) {
-
+    for (int i = 0; i < objectTable.size(); i++) {
         physObject& iObject = objectTable.getRef(i);
-        
-        
-        if(usePhysics) updateCollisions(iObject, deltaTime);
+        if (usePhysics) {
+            updateCollisions(iObject, deltaTime);
+        }
     }
 
-    for(int i = 0; i < objectTable.size(); i++) {
+    for (int i = 0; i < objectTable.size(); i++) {
         physObject& iObject = objectTable.getRef(i);
         
-        if(usePhysics && !iObject.isStatic) calculateMovement(iObject, deltaTime);  
+        if (usePhysics && !iObject.isStatic) {
+            calculateMovement(iObject, deltaTime); 
+        } 
     }
 }
 
 void world::updateCollisions(physObject& obj, float deltaTime) {
-    for(int j = 0; j < objectTable.size(); j++) {
+    for (int j = 0; j < objectTable.size(); j++) {
         physObject& iObj = objectTable.getRef(j);
 
-        if(obj.isColliding(iObj)) {
-            if( !obj.forceVectors.hasEntry(iObj.ID) || !iObj.forceVectors.hasEntry(obj.ID) ){
+        if (obj.isColliding(iObj)) {
+            if (!obj.forceVectors.hasEntry(iObj.ID) || !iObj.forceVectors.hasEntry(obj.ID)){
                 obj.resolveCollision(iObj, deltaTime);
                 iObj.resolveCollision(obj, deltaTime);
             }
         } 
-
         else {
-            if( obj.forceVectors.hasEntry(iObj.ID) ) obj.forceVectors.remove(iObj.ID);
-            if( iObj.forceVectors.hasEntry(obj.ID) ) iObj.forceVectors.remove(obj.ID);
+            if (obj.forceVectors.hasEntry(iObj.ID)) {
+                obj.forceVectors.remove(iObj.ID);
+            }
+
+            if (iObj.forceVectors.hasEntry(obj.ID)) {
+                iObj.forceVectors.remove(obj.ID);
+            }
         }
     }  
 }
-
-
 
 void world::calculateMovement(physObject& obj, float deltaTime) {
     addGravity(obj);
@@ -157,9 +167,6 @@ void world::calculateMovement(physObject& obj, float deltaTime) {
 
     obj.vel += accel * deltaTime;
     obj.pos += obj.vel * deltaTime;
-
-
-    std::cout << "obj.vel = " << obj.vel.x << ' ' << obj.vel.y << '\n';
 }
 
 void world::addGravity(physObject& obj) {
@@ -168,11 +175,18 @@ void world::addGravity(physObject& obj) {
 }
 
 bool world::isValidForce(std::string ID) {
-    if(ID == "") return false;
-    if(ID == "gravForce" || ID == "External Force") return true;
+    if (ID == "") {
+        return false;
+    }
 
-    for(int i = 0; i < objectTable.size(); i++) {
-        if(objectTable.getID(i) == ID) return true;
+    if (ID == "gravForce" || ID == "External Force") { 
+        return true;
+    }
+
+    for (int i = 0; i < objectTable.size(); i++) {
+        if (objectTable.getID(i) == ID) {
+            return true;
+        }
     }
 
     return false;

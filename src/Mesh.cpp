@@ -3,22 +3,21 @@
 #include <cmath>
 #include <iostream>
 
-mesh::mesh(std::vector<vertex>& v, std::vector<unsigned int>& i)
-    : vertices(v), index(i), generated(false) {
-
-    }
+mesh::mesh(std::vector<vertex>& v, std::vector<unsigned int>& i): vertices(v), index(i), generated(false) {}
 
 float mesh::radius() {
     float radius = 0.0f;
 
     // adjust each point to match the center, then find the distance
-    for(int i = 0; i < vertices.size(); i++) {
+    for (int i = 0; i < vertices.size(); i++) {
         vertices[i].pos[0] = vertices[i].pos[0] - center().x;
         vertices[i].pos[1] = vertices[i].pos[1] - center().y;
     
-        float distance = sqrt( pow(vertices[i].pos[0], 2) + pow((vertices[i].pos[1]), 2) );
+        float distance = sqrt(pow(vertices[i].pos[0], 2) + pow((vertices[i].pos[1]), 2));
 
-        if(radius < distance) radius = distance;
+        if (radius < distance) {
+            radius = distance;
+        }
     }
 
     return radius;
@@ -29,7 +28,7 @@ glm::vec3 mesh::center() {
     float x_mean = 0.0f;
     float y_mean = 0.0f;
 
-    for(int i = 0; i < vertices.size(); i++) {
+    for (int i = 0; i < vertices.size(); i++) {
         x_mean += vertices[i].pos[0];
         y_mean += vertices[i].pos[1];
     }  
@@ -41,7 +40,9 @@ glm::vec3 mesh::center() {
 }
 
 mesh genPolygon(int numSides) {
-    if(numSides < 3) throw std::invalid_argument("genPolygon() cannot generate a polygon with less than 3 sides");
+    if (numSides < 3) {
+        throw std::invalid_argument("genPolygon() cannot generate a polygon with less than 3 sides");
+    }
 
     std::vector<vertex> vertices = {
         vertex(0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f)
@@ -53,7 +54,7 @@ mesh genPolygon(int numSides) {
     int idx_a = 1; // 1 -> numSides
     int idx_b = 2; // 2 -> numSides -> 1
 
-    for(int i = 0; i < numSides; i++) {
+    for (int i = 0; i < numSides; i++) {
         // essentially, there will be numsides amount of triangles all around the center
 
         float x = glm::cos(glm::radians(i * angle));
@@ -68,7 +69,9 @@ mesh genPolygon(int numSides) {
         index.push_back(idx_b);
         idx_b = (idx_b + 1) % (numSides + 1);
 
-        if(idx_b == 0) idx_b = 1;
+        if (idx_b == 0) {
+            idx_b = 1;
+        }
 
     }
     
@@ -76,7 +79,7 @@ mesh genPolygon(int numSides) {
 }
 
 void setColor(mesh* myMesh, float r, float g, float b, float a) {
-    for(int i = 0; i < myMesh->vertices.size(); i++) {
+    for (int i = 0; i < myMesh->vertices.size(); i++) {
         myMesh->vertices[i].rgba[0] = r;
         myMesh->vertices[i].rgba[1] = g;
         myMesh->vertices[i].rgba[2] = b;

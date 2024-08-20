@@ -2,17 +2,20 @@
 
 void renderQueue::drawMesh(drawData& data) {
     activeShader->bind();
-    if(drawWireframe) {
+    if (drawWireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    } else {
+    } 
+    else {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    if(!data.myMesh->generated) {
+    if (!data.myMesh->generated) {
         generateBuffer(data.myMesh);
     }
     
-    if(data.myMesh->mode == TRIANGLE) activeShader->drawMesh(data.myMesh->VAO, data.myMesh->index.size(), data.model);
+    if (data.myMesh->mode == TRIANGLE) {
+        activeShader->drawMesh(data.myMesh->VAO, data.myMesh->index.size(), data.model);
+    }
 }
 
 void renderQueue::generateBuffer(mesh* Mesh) {

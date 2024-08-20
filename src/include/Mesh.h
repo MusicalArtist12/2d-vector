@@ -30,8 +30,8 @@ struct vertex {
 };
 
 struct mesh {
-    std::vector <vertex> vertices;
-    std::vector <unsigned int> index;
+    std::vector<vertex> vertices;
+    std::vector<unsigned int> index;
 
     unsigned int VAO;
     unsigned int VBO;
@@ -47,7 +47,6 @@ struct mesh {
 };
 
 void setColor(mesh* myMesh, float r, float g, float b, float a);
-
 mesh genPolygon(int numSides);
 
 #endif

@@ -84,7 +84,9 @@
         "source_location": "cpp",
         "ranges": "cpp",
         "*.ipp": "cpp",
-        "coroutine": "cpp"
+        "coroutine": "cpp",
+        "hash_set": "cpp",
+        "text_encoding": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -22,6 +22,7 @@ struct linkedList {
     T remove(std::string name);
     T& add(std::string name, T value, bool& newEntry);
     T& entry(std::string name);
+    bool hasEntry(std::string name);
 };
 
 template <typename T>

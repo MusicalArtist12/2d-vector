@@ -17,15 +17,6 @@ float getVecAngle(glm::vec3 vector);
 
 class physObject;
 
-struct physVertex {
-    vertex* data;
-    float mass;
-    glm::vec3 velocity;
-
-    physVertex(vertex* v): data(v) {}
-
-};
-
 struct keyCallback {
     int key;
     int state;
@@ -39,35 +30,30 @@ class physObject {
 
         glm::vec3 pos;
         glm::vec3 vel;
-
-        std::vector<physVertex> vertices;
         
         float mass;
         bool isStatic;
 
         std::vector<keyCallback> callbacks;
-
         dictionary<glm::vec3> forceVectors;
         
         glm::vec3 forceSum();
 
         inline glm::vec3 accel() { return forceSum()/mass; }
-        inline glm::vec3 momentum() { if(isStatic) return glm::vec3(0.0f); return mass * vel; }
-        inline float kineticEnergy() { return 0.5*mass*glm::pow(glm::length(vel),2); }
-
-        void resolveCollision(physObject& objB, float deltaTime);
-        bool isColliding(physObject& objB);
-
-        std::string getID();
-
+        inline glm::vec3 momentum() { return isStatic ? glm::vec3(0.0f) : mass * vel; }
+        inline float kineticEnergy() { return 0.5 * mass * glm::pow(glm::length(vel), 2); }
+        
+        // used to determine if an object is close enough that it *could* hit
         inline float radius() { return myMesh.radius(); }
 
-        void addKeyCallback(keyCallback callback);
+        bool isColliding(physObject& objB);
+        void resolveCollision(physObject& objB, float deltaTime);
+        
+        void (*collisionCallback)(physObject& objA, physObject& objB, float deltaTime);
 
+        void addKeyCallback(int key, int state, void (*callback)(physObject&));
         void inputLoop(window& Window);
 
-        //bool crossesLine(glm::vec3 ptA, glm::vec3 ptB); // returns true if this object crosses a given line segment
-        
         physObject(mesh shape, std::string id);
 
         glm::mat4 modelMatrix();

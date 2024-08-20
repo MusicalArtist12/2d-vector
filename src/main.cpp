@@ -26,14 +26,16 @@ void worldApp(bool* run, std::string ID);
 void objectSubApp(physObject& myObject);
 void spawnPolyApp(bool* run, std::string ID);
 
+const float PADDLE_SPEED = 3.5;
+
 void moveUp(physObject& object) {
     std::cout << "up\n"; 
     
-    object.vel = glm::vec3(0, 2, 0);
+    object.vel = glm::vec3(0, PADDLE_SPEED, 0);
 }
 
 void moveDown(physObject& object) {
-    object.vel = glm::vec3(0, -2, 0);
+    object.vel = glm::vec3(0, -PADDLE_SPEED, 0);
 }
 
 void cancelMovement(physObject& object) {
@@ -49,10 +51,10 @@ int main() {
     io.Fonts->AddFontFromFileTTF("data/fonts/SourceCodePro-Regular.otf", 18);
 
     std::vector<vertex> wallVertices = {
-        vertex(-0.5, -1, 1, 1, 1, 1), 
-        vertex(-0.5, 1, 1, 1, 1, 1), 
-        vertex(0.5, -1, 1, 1, 1, 1), 
-        vertex(0.5, 1, 1, 1, 1, 1), 
+        vertex(-0.25f, -1, 1, 1, 1, 1), 
+        vertex(-0.25f, 1, 1, 1, 1, 1), 
+        vertex(0.25f, -1, 1, 1, 1, 1), 
+        vertex(0.25f, 1, 1, 1, 1, 1), 
     };
 
     std::vector<unsigned int> wallIndices = {
@@ -67,36 +69,36 @@ int main() {
     // World.entry("left wall").isStatic = true;
     // World.entry("right wall").isStatic = true;
 
-    World.entry("left wall").addKeyCallback(keyCallback {
+    World.entry("left wall").addKeyCallback(
         GLFW_KEY_W,
         GLFW_PRESS,
         moveUp
-    });
+    );
 
-    World.entry("right wall").addKeyCallback(keyCallback {
+    World.entry("right wall").addKeyCallback(
         GLFW_KEY_I,
         GLFW_PRESS,
         moveUp
-    });
+    );
 
-    World.entry("left wall").addKeyCallback(keyCallback {
+    World.entry("left wall").addKeyCallback(
         GLFW_KEY_S,
         GLFW_PRESS,
         moveDown
-    });
+    );
 
-    World.entry("right wall").addKeyCallback(keyCallback {
+    World.entry("right wall").addKeyCallback(
         GLFW_KEY_K,
         GLFW_PRESS,
         moveDown
-    });
+    );
 
-    while(!Window.shouldClose()) {
+    while (!Window.shouldClose()) {
         Window.refresh();
         
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("Window")) {
-                for(int i = 0; i < appBools.size(); i++) {
+                for (int i = 0; i < appBools.size(); i++) {
                     if(ImGui::MenuItem(appBools.getID(i).c_str(), "", appBools.getRef(i))) {}
                 }
                 ImGui::EndMenu();
@@ -111,7 +113,9 @@ int main() {
         worldApp(appBools.add("World", new bool(true)), "World");
         spawnPolyApp(appBools.add("Spawn Polygon", new bool(true)), "Spawn Polygon");
 
-        if(*appBools.add("Demo Window", new bool(true))) { ImGui::ShowDemoWindow(); }
+        if (*appBools.add("Demo Window", new bool(true))) { 
+            ImGui::ShowDemoWindow(); 
+        }
         
         mainCam.InputLoop(Window);
         World.update(Window, RenderQueue);
@@ -125,9 +129,11 @@ int main() {
 }
 
 void cameraApp(camera& myCam, bool* run, std::string ID) {
-    if(!*run) return; 
+    if (!*run) {
+        return; 
+    }
 
-    if(!ImGui::Begin(ID.c_str(), run, myFlags)) {
+    if (!ImGui::Begin(ID.c_str(), run, myFlags)) {
         ImGui::End();
         return;
     }
@@ -142,33 +148,41 @@ void cameraApp(camera& myCam, bool* run, std::string ID) {
 }
 
 void windowApp(bool* run, std::string ID) {
-    if(!*run) return;
+    if (!*run) {
+        return;
+    }
 
-    if(!ImGui::Begin(ID.c_str(), run, myFlags)) {
+    if (!ImGui::Begin(ID.c_str(), run, myFlags)) {
         ImGui::End();
         return;
     }
 
-        ImGui::Text("Clock Rate: %3f", Window.deltaTime);
-        float framerate = 1.0f / Window.deltaTime; // this really needs to be an average of like 5...
-        ImGui::Text("Framerate: %3f", framerate);
-        ImGui::Text("Height: %3u", Window.height);
-        ImGui::Text("Width: %3u", Window.width);
+    ImGui::Text("Clock Rate: %3f", Window.deltaTime);
+    float framerate = 1.0f / Window.deltaTime; // this really needs to be an average of like 5...
+    ImGui::Text("Framerate: %3f", framerate);
+    ImGui::Text("Height: %3u", Window.height);
+    ImGui::Text("Width: %3u", Window.width);
 
-        ImGui::ColorPicker3("background", (float*)&Window.clearColor);
+    ImGui::ColorPicker3("background", (float*)&Window.clearColor);
 
-        ImGui::Text("Draw Wireframe: ");
-        ImGui::SameLine();
-        if(RenderQueue.drawWireframe == false and ImGui::Button("Enable")) RenderQueue.drawWireframe = true;
-        if(RenderQueue.drawWireframe == true and ImGui::Button("Disable")) RenderQueue.drawWireframe = false;
+    ImGui::Text("Draw Wireframe: ");
+    ImGui::SameLine();
+    if (RenderQueue.drawWireframe == false and ImGui::Button("Enable")) {
+        RenderQueue.drawWireframe = true;
+    }
+    if (RenderQueue.drawWireframe == true and ImGui::Button("Disable")) {
+        RenderQueue.drawWireframe = false;
+    }
 
     ImGui::End();
 }
 
 void worldApp(bool* run, std::string ID) {
-    if(!*run) return;
+    if (!*run) {
+        return;
+    }
 
-    if(!ImGui::Begin(ID.c_str(), run, myFlags)) {
+    if (!ImGui::Begin(ID.c_str(), run, myFlags)) {
         ImGui::End();
         return;
     }
@@ -191,19 +205,17 @@ void worldApp(bool* run, std::string ID) {
 void objectSubApp(physObject& myObject) {
     ImGui::PushID(&myObject);
     
-
     ImGui::DragFloat2("Position", (float*)&myObject.pos);
     ImGui::DragFloat2("Velocity", (float*)&myObject.vel);
     ImGui::SameLine(); ImGui::Text("(%f)", glm::length(myObject.vel));
-    ImGui::Text("Radius: %f", myObject.radius());
     ImGui::Text("Acceleration: (%f, %f) |%f|", myObject.accel().x, myObject.accel().y, glm::length(myObject.accel()));
     ImGui::Text("Momentum: (%f, %f) |%f|", myObject.momentum().x, myObject.momentum().y, glm::length(myObject.momentum()));
     ImGui::Text("Kinetic Energy: %f", myObject.kineticEnergy());
 
-    if(ImGui::TreeNode("Mesh Data")) {
+    if (ImGui::TreeNode("Mesh Data")) {
         ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x, 260), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-        for(int i = 0; i < myObject.myMesh.vertices.size(); i++) {
+        for (int i = 0; i < myObject.myMesh.vertices.size(); i++) {
             ImGui::PushID(&myObject.myMesh.vertices[i]);
             ImGui::DragFloat2("Position", myObject.myMesh.vertices[i].pos);
             ImGui::SameLine(); ImGui::ColorEdit3("Color", myObject.myMesh.vertices[i].rgba);
@@ -213,16 +225,20 @@ void objectSubApp(physObject& myObject) {
         ImGui::EndChild();
         ImGui::TreePop();
 
-        if(ImGui::Button("Update Mesh")) myObject.myMesh.generated=false;
+        if (ImGui::Button("Update Mesh")) {
+            myObject.myMesh.generated=false;
+        }
     }
 
     ImGui::PopID();
 }
 
 void spawnPolyApp(bool* run, std::string ID) {
-    if(!*run) return;
+    if (!*run) {
+        return;
+    }
 
-    if(!ImGui::Begin(ID.c_str(), run, myFlags)) {
+    if (!ImGui::Begin(ID.c_str(), run, myFlags)) {
         ImGui::End();
         return;
     }

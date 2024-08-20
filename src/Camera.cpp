@@ -7,57 +7,57 @@
 #include <imgui.h>
 
 glm::mat4 camera::projection(int width, int height) {
-    float relWidth = width/(2 * scale);
-    float relHeight = height/(2 * scale);
+    float relWidth = width / 2.0 * scale;
+    float relHeight = height / 2.0 * scale;
     
-    float left = -1 * relWidth;
-    float right = 1* relWidth;
-    float bottom = -1 * relHeight;
-    float top = 1 * relHeight;
+    float left = -1.0 * relWidth;
+    float right = 1.0 * relWidth;
+    float bottom = -1.0 * relHeight;
+    float top = 1.0 * relHeight;
 
     return glm::ortho(left, right, bottom, top, 0.0f, 100.0f);
 }
 
 glm::mat4 camera::view() {
-    glm::mat4 view = glm::lookAt(glm::vec3(pos, 1.0f), glm::vec3(pos, 1.0f)+glm::vec3(0.0, 0.0, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::lookAt(glm::vec3(pos, 1.0f), glm::vec3(pos, 1.0f) + glm::vec3(0.0, 0.0, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     return view;
 }
 
 void camera::InputLoop(window& Window) {
     
-    if(Window.readKey(GLFW_KEY_UP) == GLFW_PRESS) {
+    if (Window.readKey(GLFW_KEY_UP) == GLFW_PRESS) {
         pos += glm::vec2(0.0, speed/scale) * Window.deltaTime;
     }
-    if(Window.readKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
+    if (Window.readKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
         pos -= glm::vec2(0.0, speed/scale) * Window.deltaTime;
     }
-    if(Window.readKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
+    if (Window.readKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
         pos -= glm::vec2(speed/scale, 0.0) * Window.deltaTime;
     }
-    if(Window.readKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
+    if (Window.readKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
         pos += glm::vec2(speed/scale, 0.0) * Window.deltaTime;
     }
-    if(Window.readKey(GLFW_KEY_PAGE_UP) == GLFW_PRESS && scale < maxScale) {
+    if (Window.readKey(GLFW_KEY_PAGE_UP) == GLFW_PRESS && scale < maxScale) {
         scale += (speed * scale * 0.001) * Window.deltaTime;
 
-        if(scale > maxScale) {
+        if (scale > maxScale) {
             scale = maxScale;
         }
 
     }
-    if(Window.readKey(GLFW_KEY_PAGE_DOWN) == GLFW_PRESS && scale > minScale) {
+    if (Window.readKey(GLFW_KEY_PAGE_DOWN) == GLFW_PRESS && scale > minScale) {
         scale -= (speed * scale * 0.001) * Window.deltaTime;
 
-        if(scale < minScale) {
+        if (scale < minScale) {
             scale = minScale;
         }
-
     }
 
     static bool next_cycle = false;
     static double x_i, y_i;
-    if(next_cycle) {        
+
+    if (next_cycle) {        
         double x_f, y_f;
 
         Window.readMousePos(&x_f, &y_f);
@@ -70,10 +70,11 @@ void camera::InputLoop(window& Window) {
     }
 
 
-    if(Window.readMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+    if (Window.readMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         next_cycle = true;
         Window.readMousePos(&x_i, &y_i);
-    } else {
+    } 
+    else {
         next_cycle = false;
     }    
 }
