@@ -6,7 +6,6 @@
 mesh::mesh(std::vector<vertex>& v, std::vector<unsigned int>& i)
     : vertices(v), index(i), generated(false) {
 
-
     }
 
 float mesh::radius() {

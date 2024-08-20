@@ -74,9 +74,30 @@ physObject::physObject(mesh shape, std::string id):
         }
 }
 
+
+void physObject::addKeyCallback(keyCallback callback) {
+    callbacks.push_back(callback);
+}
+
+void physObject::inputLoop(window& Window) {
+    for (int i = 0; i < callbacks.size(); i++) {
+        if (Window.readKey(callbacks[i].key) == callbacks[i].state) {
+            callbacks[i].callback(*this);
+        }
+    }
+}
+
 // ******************************************************************
 
-void world::update(float deltaTime, renderQueue& RenderQueue) {
+void world::update(window& Window, renderQueue& RenderQueue) {
+    float deltaTime = Window.deltaTime;
+   
+    for(int i = 0; i < objectTable.size(); i++) {
+        physObject& iObj = objectTable.getRef(i);
+        
+        iObj.inputLoop(Window);
+    }
+
 
     if(deltaTime < 0) deltaTime = 0;
     for(int i = 0; i < countsPerFrame; i++) {
@@ -85,6 +106,8 @@ void world::update(float deltaTime, renderQueue& RenderQueue) {
 
     for(int i = 0; i < objectTable.size(); i++) {
         physObject& iObj = objectTable.getRef(i);
+        
+        iObj.inputLoop(Window);
         RenderQueue.queue.push_back(drawData(&iObj.myMesh, iObj.modelMatrix()));
     }
 }
@@ -93,6 +116,7 @@ void world::updateMovement(float deltaTime) {
     for(int i = 0; i < objectTable.size(); i++) {
 
         physObject& iObject = objectTable.getRef(i);
+        
         
         if(usePhysics) updateCollisions(iObject, deltaTime);
     }
@@ -133,6 +157,9 @@ void world::calculateMovement(physObject& obj, float deltaTime) {
 
     obj.vel += accel * deltaTime;
     obj.pos += obj.vel * deltaTime;
+
+
+    std::cout << "obj.vel = " << obj.vel.x << ' ' << obj.vel.y << '\n';
 }
 
 void world::addGravity(physObject& obj) {

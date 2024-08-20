@@ -26,6 +26,19 @@ void worldApp(bool* run, std::string ID);
 void objectSubApp(physObject& myObject);
 void spawnPolyApp(bool* run, std::string ID);
 
+void moveUp(physObject& object) {
+    std::cout << "up\n"; 
+    
+    object.vel = glm::vec3(0, 2, 0);
+}
+
+void moveDown(physObject& object) {
+    object.vel = glm::vec3(0, -2, 0);
+}
+
+void cancelMovement(physObject& object) {
+    object.vel = glm::vec3(0, 0, 0);
+}
 
 int main() { 
     RenderQueue.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
@@ -35,8 +48,48 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.Fonts->AddFontFromFileTTF("data/fonts/SourceCodePro-Regular.otf", 18);
 
-    World.add(physObject(mesh(genPolygon(8)), "meep"));
-    World.add(physObject(mesh(genPolygon(5)), "moop"));
+    std::vector<vertex> wallVertices = {
+        vertex(-0.5, -1, 1, 1, 1, 1), 
+        vertex(-0.5, 1, 1, 1, 1, 1), 
+        vertex(0.5, -1, 1, 1, 1, 1), 
+        vertex(0.5, 1, 1, 1, 1, 1), 
+    };
+
+    std::vector<unsigned int> wallIndices = {
+        0, 1, 2,
+        1, 2, 3
+    };
+
+    World.add(physObject(mesh(genPolygon(50)), "pong ball"));
+    World.add(physObject(mesh(wallVertices, wallIndices), "left wall")).pos = glm::vec3(-10, 0, 0);
+    World.add(physObject(mesh(wallVertices, wallIndices), "right wall")).pos = glm::vec3(10, 0, 0);
+    
+    // World.entry("left wall").isStatic = true;
+    // World.entry("right wall").isStatic = true;
+
+    World.entry("left wall").addKeyCallback(keyCallback {
+        GLFW_KEY_W,
+        GLFW_PRESS,
+        moveUp
+    });
+
+    World.entry("right wall").addKeyCallback(keyCallback {
+        GLFW_KEY_I,
+        GLFW_PRESS,
+        moveUp
+    });
+
+    World.entry("left wall").addKeyCallback(keyCallback {
+        GLFW_KEY_S,
+        GLFW_PRESS,
+        moveDown
+    });
+
+    World.entry("right wall").addKeyCallback(keyCallback {
+        GLFW_KEY_K,
+        GLFW_PRESS,
+        moveDown
+    });
 
     while(!Window.shouldClose()) {
         Window.refresh();
@@ -61,7 +114,8 @@ int main() {
         if(*appBools.add("Demo Window", new bool(true))) { ImGui::ShowDemoWindow(); }
         
         mainCam.InputLoop(Window);
-        World.update(Window.deltaTime, RenderQueue);
+        World.update(Window, RenderQueue);
+
         RenderQueue.draw(mainCam, Window.width, Window.height);
         Window.render(); 
     }
@@ -123,7 +177,6 @@ void worldApp(bool* run, std::string ID) {
     ImGui::DragFloat("Gravity", &World.grav);
     ImGui::InputInt("Counts Per Frame", &World.countsPerFrame, 1);
     ImGui::Checkbox("Use Physics", &World.usePhysics);
-    ImGui::Text("");
     ImGui::Text("Number of Objects: %i", World.tableSize());
 
     for (int i = 0; i < World.tableSize(); i++) {
@@ -138,10 +191,11 @@ void worldApp(bool* run, std::string ID) {
 void objectSubApp(physObject& myObject) {
     ImGui::PushID(&myObject);
     
+
     ImGui::DragFloat2("Position", (float*)&myObject.pos);
-    
     ImGui::DragFloat2("Velocity", (float*)&myObject.vel);
     ImGui::SameLine(); ImGui::Text("(%f)", glm::length(myObject.vel));
+    ImGui::Text("Radius: %f", myObject.radius());
     ImGui::Text("Acceleration: (%f, %f) |%f|", myObject.accel().x, myObject.accel().y, glm::length(myObject.accel()));
     ImGui::Text("Momentum: (%f, %f) |%f|", myObject.momentum().x, myObject.momentum().y, glm::length(myObject.momentum()));
     ImGui::Text("Kinetic Energy: %f", myObject.kineticEnergy());

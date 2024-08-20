@@ -15,6 +15,8 @@
 
 float getVecAngle(glm::vec3 vector);
 
+class physObject;
+
 struct physVertex {
     vertex* data;
     float mass;
@@ -22,6 +24,12 @@ struct physVertex {
 
     physVertex(vertex* v): data(v) {}
 
+};
+
+struct keyCallback {
+    int key;
+    int state;
+    void (*callback)(physObject&);
 };
 
 class physObject {
@@ -37,6 +45,8 @@ class physObject {
         float mass;
         bool isStatic;
 
+        std::vector<keyCallback> callbacks;
+
         dictionary<glm::vec3> forceVectors;
         
         glm::vec3 forceSum();
@@ -51,6 +61,10 @@ class physObject {
         std::string getID();
 
         inline float radius() { return myMesh.radius(); }
+
+        void addKeyCallback(keyCallback callback);
+
+        void inputLoop(window& Window);
 
         //bool crossesLine(glm::vec3 ptA, glm::vec3 ptB); // returns true if this object crosses a given line segment
         
@@ -71,9 +85,9 @@ class world {
     public:   
         float grav;
         bool usePhysics;
-        int countsPerFrame = 500;
+        int countsPerFrame = 10;
 
-        void update(float deltaTime, renderQueue& queue);
+        void update(window& Window, renderQueue& queue);
 
         // ensure that the dictionary ID matches the object ID
         inline physObject& add(physObject value) { 

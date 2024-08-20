@@ -76,8 +76,6 @@ void window::refresh() {
 
     glfwGetFramebufferSize(ID, &width, &height);
     glViewport(0, 0, width, height);
-    
-    
 }
 
 void window::render() {
