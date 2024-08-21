@@ -9,7 +9,7 @@
 
 #include "Mesh.h"
 
-class shader {
+class Shader {
     private:
         unsigned int ID;
 
@@ -26,12 +26,14 @@ class shader {
         void setUniform3f(const std::string& name, glm::vec3 val);
         void setUniform4f(const std::string& name, glm::vec4 val);
 
-        shader(const char* vertex_path, const char* fragment_path);
+        Shader(const char* vertex_path, const char* fragment_path);
 
         void drawMesh(GLuint VAO, int size, glm::mat4 model);
         void setView(glm::mat4 view, glm::mat4 projection);
 
-        void generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, vertex* vertices, int vSize, GLuint* index, int iSize);
+        void generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, Vertex* vertices, int vSize, GLuint* index, int iSize);
+        void updateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, Vertex* vertices, int vSize, GLuint* index, int iSize);
+
 };
 
 #endif

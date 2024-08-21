@@ -5,17 +5,17 @@
 #include <vector>
 
 template <typename T>
-struct node {
+struct Node {
     T value;
     const std::string name;
-    node<T>* next;
+    Node<T>* next;
 
-    node(std::string& n, T val): value(val), name(n), next(nullptr) {}
+    Node(std::string& n, T val): value(val), name(n), next(nullptr) {}
 };
 
 template <typename T>
-struct linkedList {
-    node<T>* head = nullptr;
+struct LinkedList {
+    Node<T>* head = nullptr;
 
     bool isEmpty();
 
@@ -26,21 +26,21 @@ struct linkedList {
 };
 
 template <typename T>
-class dictionary {
+class Dictionary {
     private:
         const int length;
 
-        linkedList<T>* dict;
+        LinkedList<T>* dict;
         int hash(std::string name);
 
-        std::vector<node<T>*> _ptrList;
+        std::vector<Node<T>*> _ptrList;
         bool ptrListUpToDate;
 
         void updatePtrList();
 
     public:
-        dictionary(int n): length(n) {
-            dict = new linkedList<T>[length];
+        Dictionary(int n): length(n) {
+            dict = new LinkedList<T>[length];
             resetCache();
         };
 

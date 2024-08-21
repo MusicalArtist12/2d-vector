@@ -15,19 +15,19 @@
 
 float getVecAngle(glm::vec3 vector);
 
-class physObject;
+class PhysObject;
 
-struct keyCallback {
+struct KeyCallback {
     int key;
     int state;
-    void (*callback)(physObject&, keyCallback* self);
+    void (*callback)(PhysObject&, KeyCallback* self);
     std::string name;
 };
 
-class physObject {
+class PhysObject {
     public: 
         const std::string ID;
-        mesh myMesh;
+        Mesh myMesh;
 
         glm::vec3 pos;
         glm::vec3 vel;
@@ -37,11 +37,11 @@ class physObject {
         // completely unmoving. still has collisions
         bool isStatic;
 
-        // no collisions
+        // no collision handling. none.
         bool isGhost;
 
-        std::vector<keyCallback> callbacks;
-        dictionary<glm::vec3> forceVectors;
+        std::vector<KeyCallback> callbacks;
+        Dictionary<glm::vec3> forceVectors;
         
         glm::vec3 forceSum();
 
@@ -52,28 +52,31 @@ class physObject {
         // used to determine if an object is close enough that it *could* hit
         inline float radius() { return myMesh.radius(); }
 
-        bool isColliding(physObject& objB);
-        void resolveCollision(physObject& objB, float deltaTime);
+        bool isColliding(PhysObject& objB);
+        void transferEnergy(PhysObject& objB, float deltaTime);
+
+        void resolveCollision(PhysObject& objB, float deltaTime);
         
-        void (*collisionCallback)(physObject& objA, physObject& objB, float deltaTime);
+        void (*collisionCallback)(PhysObject* self, PhysObject& objB, float deltaTime);
 
-        void addKeyCallback(std::string name, int key, int state, void (*callback)(physObject&, keyCallback* self));
+
+        void addKeyCallback(std::string name, int key, int state, void (*callback)(PhysObject&, KeyCallback* self));
         void removeKeyCallback(std::string name);
-        void inputLoop(window& Window);
+        void inputLoop(Window& window);
 
-        physObject(mesh shape, std::string id);
+        PhysObject(Mesh shape, std::string id);
 
         glm::mat4 modelMatrix();
 };
 
-class world {
+class World {
     private:
         void updateMovement(float deltaTime);
-        void addGravity(physObject& obj);
-        void calculateMovement(physObject& obj, float deltaTime);
-        void updateCollisions(physObject& obj, float deltaTime);
+        void addGravity(PhysObject& obj);
+        void calculateMovement(PhysObject& obj, float deltaTime);
+        void updateCollisions(PhysObject& obj, float deltaTime);
 
-        dictionary<physObject> objectTable;
+        Dictionary<PhysObject> objectTable;
 
     public:   
         float grav;
@@ -82,25 +85,25 @@ class world {
         bool isPaused;
         int countsPerFrame = 10;
 
-        void update(window& Window, renderQueue& queue);
+        void update(Window& window, RenderQueue& queue);
 
         // ensure that the dictionary ID matches the object ID
-        inline physObject& add(physObject value) { 
-            physObject& obj = objectTable.add(value.ID, value);
+        inline PhysObject& add(PhysObject value) { 
+            PhysObject& obj = objectTable.add(value.ID, value);
             return obj; 
         }
 
-        inline physObject remove(std::string name) { return objectTable.remove(name); }
-        inline physObject& entry(std::string name) { return objectTable.entry(name); }
+        inline PhysObject remove(std::string name) { return objectTable.remove(name); }
+        inline PhysObject& entry(std::string name) { return objectTable.entry(name); }
         inline bool hasEntry(std::string name) { return objectTable.hasEntry(name); }
         
         inline int tableSize() { return objectTable.size(); }
-        inline physObject& getRef(int idx) { return objectTable.getRef(idx); }
+        inline PhysObject& getRef(int idx) { return objectTable.getRef(idx); }
 
         // used to remove forces that should not exist.
         bool isValidForce(std::string ID);
         
-        world(): objectTable(676), grav(0.0f), useGravity(false), useCollisions(false), isPaused(true) {}
+        World(): objectTable(676), grav(0.0f), useGravity(false), useCollisions(false), isPaused(true) {}
 };
 
 

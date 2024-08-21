@@ -3,9 +3,9 @@
 #include <cmath>
 #include <iostream>
 
-mesh::mesh(std::vector<vertex>& v, std::vector<unsigned int>& i): vertices(v), index(i), generated(false) {}
+Mesh::Mesh(std::vector<Vertex>& v, std::vector<unsigned int>& i): vertices(v), index(i), generated(false) {}
 
-float mesh::radius() {
+float Mesh::radius() {
     float radius = 0.0f;
 
     // adjust each point to match the center, then find the distance
@@ -23,7 +23,7 @@ float mesh::radius() {
     return radius;
 }
 
-glm::vec3 mesh::center() {
+glm::vec3 Mesh::center() {
     // find the center via the mean
     float x_mean = 0.0f;
     float y_mean = 0.0f;
@@ -39,13 +39,13 @@ glm::vec3 mesh::center() {
     return glm::vec3(x_mean, y_mean, 0.0f);
 }
 
-mesh genPolygon(int numSides) {
+Mesh genPolygon(int numSides) {
     if (numSides < 3) {
         throw std::invalid_argument("genPolygon() cannot generate a polygon with less than 3 sides");
     }
 
-    std::vector<vertex> vertices = {
-        vertex(0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f)
+    std::vector<Vertex> vertices = {
+        Vertex(0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f)
     };
 
     std::vector<unsigned int> index;
@@ -60,7 +60,7 @@ mesh genPolygon(int numSides) {
         float x = glm::cos(glm::radians(i * angle));
         float y = glm::sin(glm::radians(i * angle));
 
-        vertices.push_back(vertex(x, y, 1.0f, 1.0f, 1.0f, 1.0f));
+        vertices.push_back(Vertex(x, y, 1.0f, 1.0f, 1.0f, 1.0f));
         index.push_back(0); 
         
         index.push_back(idx_a);
@@ -75,16 +75,16 @@ mesh genPolygon(int numSides) {
 
     }
     
-    return mesh(vertices, index);
+    return Mesh(vertices, index);
 }
 
-void setColor(mesh* myMesh, float r, float g, float b, float a) {
-    for (int i = 0; i < myMesh->vertices.size(); i++) {
-        myMesh->vertices[i].rgba[0] = r;
-        myMesh->vertices[i].rgba[1] = g;
-        myMesh->vertices[i].rgba[2] = b;
-        myMesh->vertices[i].rgba[3] = a;
+void setColor(Mesh* mesh, float r, float g, float b, float a) {
+    for (int i = 0; i < mesh->vertices.size(); i++) {
+        mesh->vertices[i].rgba[0] = r;
+        mesh->vertices[i].rgba[1] = g;
+        mesh->vertices[i].rgba[2] = b;
+        mesh->vertices[i].rgba[3] = a;
     }
 
-    myMesh->generated = false;
+    mesh->generated = false;
 }

@@ -6,7 +6,7 @@
 
 #include <imgui.h>
 
-glm::mat4 camera::projection(int width, int height) {
+glm::mat4 Camera::projection(int width, int height) {
     float relWidth = width / (2.0 * scale);
     float relHeight = height / (2.0 * scale);
     
@@ -18,36 +18,36 @@ glm::mat4 camera::projection(int width, int height) {
     return glm::ortho(left, right, bottom, top, 0.0f, 100.0f);
 }
 
-glm::mat4 camera::view() {
+glm::mat4 Camera::view() {
     glm::mat4 view = glm::lookAt(glm::vec3(pos, 1.0f), glm::vec3(pos, 1.0f) + glm::vec3(0.0, 0.0, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     return view;
 }
 
-void camera::InputLoop(window& Window) {
+void Camera::inputLoop(Window& window) {
     
-    if (Window.readKey(GLFW_KEY_UP) == GLFW_PRESS) {
-        pos += glm::vec2(0.0, speed/scale) * Window.deltaTime;
+    if (window.readKey(GLFW_KEY_UP) == GLFW_PRESS) {
+        pos += glm::vec2(0.0, speed/scale) * window.deltaTime;
     }
-    if (Window.readKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
-        pos -= glm::vec2(0.0, speed/scale) * Window.deltaTime;
+    if (window.readKey(GLFW_KEY_DOWN) == GLFW_PRESS) {
+        pos -= glm::vec2(0.0, speed/scale) * window.deltaTime;
     }
-    if (Window.readKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
-        pos -= glm::vec2(speed/scale, 0.0) * Window.deltaTime;
+    if (window.readKey(GLFW_KEY_LEFT) == GLFW_PRESS) {
+        pos -= glm::vec2(speed/scale, 0.0) * window.deltaTime;
     }
-    if (Window.readKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        pos += glm::vec2(speed/scale, 0.0) * Window.deltaTime;
+    if (window.readKey(GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        pos += glm::vec2(speed/scale, 0.0) * window.deltaTime;
     }
-    if (Window.readKey(GLFW_KEY_PAGE_UP) == GLFW_PRESS && scale < maxScale) {
-        scale += (speed * scale * 0.001) * Window.deltaTime;
+    if (window.readKey(GLFW_KEY_PAGE_UP) == GLFW_PRESS && scale < maxScale) {
+        scale += (speed * scale * 0.001) * window.deltaTime;
 
         if (scale > maxScale) {
             scale = maxScale;
         }
 
     }
-    if (Window.readKey(GLFW_KEY_PAGE_DOWN) == GLFW_PRESS && scale > minScale) {
-        scale -= (speed * scale * 0.001) * Window.deltaTime;
+    if (window.readKey(GLFW_KEY_PAGE_DOWN) == GLFW_PRESS && scale > minScale) {
+        scale -= (speed * scale * 0.001) * window.deltaTime;
 
         if (scale < minScale) {
             scale = minScale;
@@ -60,7 +60,7 @@ void camera::InputLoop(window& Window) {
     if (next_cycle) {        
         double x_f, y_f;
 
-        Window.readMousePos(&x_f, &y_f);
+        window.readMousePos(&x_f, &y_f);
 
         double deltaX = (x_f - x_i) / scale; // window width/height cancel out
         double deltaY = (y_f - y_i) / scale;
@@ -70,9 +70,9 @@ void camera::InputLoop(window& Window) {
     }
 
 
-    if (Window.readMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+    if (window.readMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         next_cycle = true;
-        Window.readMousePos(&x_i, &y_i);
+        window.readMousePos(&x_i, &y_i);
     } 
     else {
         next_cycle = false;

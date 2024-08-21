@@ -10,7 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-class window {
+class Window {
     private:
         int initGLFW();
         int initWindow();
@@ -30,6 +30,8 @@ class window {
         glm::vec3 clearColor = glm::vec3((102.0f/255.0f), (180.0f/255.0f), (222.0f/255.0f));
 
         void refresh();
+        void startImgui();
+        void renderImgui();
         void render();
         void terminate();
         
@@ -43,7 +45,7 @@ class window {
             return glfwWindowShouldClose(ID); 
         }
 
-        window(const char* t);
+        Window(const char* t);
 };
 
 

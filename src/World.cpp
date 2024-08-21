@@ -3,7 +3,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-extern world World;
+extern World world;
 
 float getVecAngle(glm::vec3 vector) {
     if (glm::length(vector) == 0.0) {
@@ -19,7 +19,7 @@ float getVecAngle(glm::vec3 vector) {
     return angle1;
 }
 
-glm::mat4 physObject::modelMatrix() {
+glm::mat4 PhysObject::modelMatrix() {
     glm::mat4 model = glm::mat4(1.0f);
 
     model = glm::translate(glm::mat4(1.0f), pos) * model;
@@ -27,7 +27,7 @@ glm::mat4 physObject::modelMatrix() {
     return model;
 }
 
-glm::vec3 physObject::forceSum() {
+glm::vec3 PhysObject::forceSum() {
     glm::vec3 forces = glm::vec3(0.0f);
 
     if (isStatic) {
@@ -35,7 +35,7 @@ glm::vec3 physObject::forceSum() {
     }
 
     for (int i = 0; i < forceVectors.size(); i++) {
-        if (!World.isValidForce(forceVectors.getID(i))) {
+        if (!world.isValidForce(forceVectors.getID(i))) {
             forceVectors.remove(forceVectors.getID(i)); 
         }
         else {
@@ -46,7 +46,7 @@ glm::vec3 physObject::forceSum() {
     return forces;
 }
 
-void physObject::resolveCollision(physObject& objB, float deltaTime) {
+void PhysObject::transferEnergy(PhysObject& objB, float deltaTime) {    
     glm::vec3& forceA = forceVectors.add(objB.ID, glm::vec3(0.0f));
 
     glm::vec3 AB = objB.pos - pos;
@@ -62,25 +62,111 @@ void physObject::resolveCollision(physObject& objB, float deltaTime) {
 
     forceA = (p_effB - p_effA)/deltaTime - f_effA;
 
-    if (collisionCallback != nullptr) {
-        collisionCallback(*this, objB, deltaTime);
-    }
 }
 
-bool physObject::isColliding(physObject& objB) {
+bool PhysObject::isColliding(PhysObject& objB) {
     if(ID == objB.ID || isGhost) { 
         return false;
     }
-    if (glm::distance(pos, objB.pos) <= radius() + objB.radius()) {
+
+    double distance = glm::distance(pos, objB.pos);
+    glm::vec3 direction = glm::normalize(objB.pos - pos);
+    float direction_angle = glm::atan(direction[1]/direction[0]);
+
+    if (distance >= radius() + objB.radius()) {
+        return false;
+    }
+
+    if (myMesh.mode != TRIANGLE) {
+        std::cout << "Collision detection is only accurate for meshes using triangle indices" << std::endl;
         return true;
     }
 
-    return false;
+    // get all verticies within a certain slice of the object "radius". the closer the other object is, the wider the radius needs to be 
+    // angle can be based on the other object's radius (as the length of a triangle)
+    // so we have distance and height. and we know its an isolese triangle.
+    // which is just two right angle triangles
+    // which means tan(myAngle) = (other_radius/2) / distance
+    // which means myAngle = arctan(other_radius / (distance * 2))
+
+
+    // we only care about polygons that are the distance's direction += angle
+    float angle = glm::atan(objB.radius() / (distance * 2));
+
+    // to get the relevant triangles, we need to iterate over myMesh's indices (grouped by 3)
+    // we'll say it matters if at least one point is inside the angle.
+
+    struct Polygon {
+        Vertex& a;
+        Vertex& b;
+        Vertex& c;
+    };
+
+    std::vector<Polygon> relevantPolygons;
+
+    for (int i = 0; i < myMesh.index.size(); i+= 3) {
+        Vertex& a = myMesh.vertices[i];
+        Vertex& b = myMesh.vertices[i + 1];
+        Vertex& c = myMesh.vertices[i + 2];
+
+        // if any of these vertices are within direction rotated += angle, then the entire polygon matters.
+
+        float angleA = glm::atan(a.pos[1], a.pos[0]);
+
+        float angleB = glm::atan(b.pos[1], b.pos[0]);
+        float angleC = glm::atan(c.pos[1], c.pos[0]);
+
+        if (angleA <= angle || angleB <= angle || angleC <= angle) {
+            relevantPolygons.push_back({a, b, c});
+        } 
+
+    }
+
+    std::cout << "angle: " << angle << " start\n";
+
+    for (int i = 0; i < relevantPolygons.size(); i++) {
+        std::cout << "polygon " << i << "\n";
+        std::cout << "1: " << relevantPolygons[i].a.pos[0] << " " << relevantPolygons[i].a.pos[1] << " " << relevantPolygons[i].a.pos[2] << "\n";
+        std::cout << "2: " << relevantPolygons[i].b.pos[0] << " " << relevantPolygons[i].b.pos[1] << " " << relevantPolygons[i].b.pos[2] << "\n";
+        std::cout << "3: " << relevantPolygons[i].c.pos[0] << " " << relevantPolygons[i].c.pos[1] << " " << relevantPolygons[i].c.pos[2] << "\n";
+        std::cout << "\n";
+
+        
+        relevantPolygons[i].a.rgba[0] = 1.0f;
+        relevantPolygons[i].b.rgba[0] = 1.0f;
+        relevantPolygons[i].c.rgba[0] = 1.0f;
+
+        relevantPolygons[i].a.rgba[1] = 0.0f;
+        relevantPolygons[i].b.rgba[1] = 0.0f;
+        relevantPolygons[i].c.rgba[1] = 0.0f;
+
+        relevantPolygons[i].a.rgba[2] = 0.0f;
+        relevantPolygons[i].b.rgba[2] = 0.0f;
+        relevantPolygons[i].c.rgba[2] = 0.0f;
+
+        relevantPolygons[i].a.rgba[3] = 1.0f;
+        relevantPolygons[i].b.rgba[3] = 1.0f;
+        relevantPolygons[i].c.rgba[3] = 1.0f;
+
+        myMesh.upToDate = false;
+    }
+
+
+    return true;
 }
 
-physObject::physObject(mesh shape, std::string id): ID(id), myMesh(shape), pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), isGhost(false), forceVectors(26), collisionCallback(nullptr) {}
+void PhysObject::resolveCollision(PhysObject& objB, float deltaTime) {
+    if (collisionCallback == nullptr) {
+        transferEnergy(objB, deltaTime);
+    }
+    else {
+        collisionCallback(this, objB, deltaTime);
+    }
+}
 
-void physObject::addKeyCallback(std::string name, int key, int state, void (*callback)(physObject&, keyCallback* self)) {
+PhysObject::PhysObject(Mesh shape, std::string id): ID(id), myMesh(shape), pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), isGhost(false), forceVectors(26), collisionCallback(nullptr) {}
+
+void PhysObject::addKeyCallback(std::string name, int key, int state, void (*callback)(PhysObject&, KeyCallback* self)) {
     callbacks.push_back({
         key,
         state,
@@ -89,7 +175,7 @@ void physObject::addKeyCallback(std::string name, int key, int state, void (*cal
     });
 }
 
-void physObject::removeKeyCallback(std::string name) {
+void PhysObject::removeKeyCallback(std::string name) {
     for (int i = 0; i < callbacks.size(); i++) {
         if (callbacks[i].name == name) {
             callbacks.erase(callbacks.begin()+i);
@@ -97,9 +183,9 @@ void physObject::removeKeyCallback(std::string name) {
     }
 }
 
-void physObject::inputLoop(window& Window) {
+void PhysObject::inputLoop(Window& window) {
     for (int i = 0; i < callbacks.size(); i++) {
-        if (Window.readKey(callbacks[i].key) == callbacks[i].state) {
+        if (window.readKey(callbacks[i].key) == callbacks[i].state) {
             callbacks[i].callback(*this, &callbacks[i]);
         }
     }
@@ -107,13 +193,13 @@ void physObject::inputLoop(window& Window) {
 
 // ******************************************************************
 
-void world::update(window& Window, renderQueue& RenderQueue) {
-    float deltaTime = Window.deltaTime > 0 ? Window.deltaTime : 0;
+void World::update(Window& window, RenderQueue& renderQueue) {
+    float deltaTime = window.deltaTime > 0 ? window.deltaTime : 0;
    
     if (!isPaused) {
         for (int i = 0; i < objectTable.size(); i++) {
-            physObject& iObj = objectTable.getRef(i);
-            iObj.inputLoop(Window);
+            PhysObject& iObj = objectTable.getRef(i);
+            iObj.inputLoop(window);
         }
 
         for (int i = 0; i < countsPerFrame; i++) {
@@ -122,14 +208,14 @@ void world::update(window& Window, renderQueue& RenderQueue) {
     }
 
     for (int i = 0; i < objectTable.size(); i++) {
-        physObject& iObj = objectTable.getRef(i);
-        RenderQueue.queue.push_back(drawData(&iObj.myMesh, iObj.modelMatrix()));
+        PhysObject& iObj = objectTable.getRef(i);
+        renderQueue.queue.push_back(DrawData(&iObj.myMesh, iObj.modelMatrix()));
     }
 }
 
-void world::updateMovement(float deltaTime) {
+void World::updateMovement(float deltaTime) {
     for (int i = 0; i < objectTable.size(); i++) {
-        physObject& iObject = objectTable.getRef(i);
+        PhysObject& iObject = objectTable.getRef(i);
         
         if (!iObject.isStatic) {
             if (useGravity) {
@@ -143,15 +229,15 @@ void world::updateMovement(float deltaTime) {
     }
 
     for (int i = 0; i < objectTable.size(); i++) {
-        physObject& iObject = objectTable.getRef(i);
+        PhysObject& iObject = objectTable.getRef(i);
 
         calculateMovement(iObject, deltaTime); 
     }
 }
 
-void world::updateCollisions(physObject& obj, float deltaTime) {
+void World::updateCollisions(PhysObject& obj, float deltaTime) {
     for (int j = 0; j < objectTable.size(); j++) {
-        physObject& iObj = objectTable.getRef(j);
+        PhysObject& iObj = objectTable.getRef(j);
 
         if (obj.isColliding(iObj) && iObj.isColliding(obj)) {
             if (!obj.forceVectors.hasEntry(iObj.ID) || !iObj.forceVectors.hasEntry(obj.ID)){
@@ -171,7 +257,7 @@ void world::updateCollisions(physObject& obj, float deltaTime) {
     }  
 }
 
-void world::calculateMovement(physObject& obj, float deltaTime) {
+void World::calculateMovement(PhysObject& obj, float deltaTime) {
     
     glm::vec3 accel = obj.forceSum() / obj.mass;
 
@@ -181,12 +267,12 @@ void world::calculateMovement(physObject& obj, float deltaTime) {
     obj.pos += obj.vel * deltaTime;
 }
 
-void world::addGravity(physObject& obj) {
+void World::addGravity(PhysObject& obj) {
     glm::vec3& gravForce = obj.forceVectors.add("gravForce", glm::vec3(0.0f));
     gravForce = glm::vec3(0.0f, grav, 0.0f) * obj.mass;
 }
 
-bool world::isValidForce(std::string ID) {
+bool World::isValidForce(std::string ID) {
     if (ID == "") {
         return false;
     }

@@ -11,25 +11,26 @@
 
 #include <vector>
 
-struct drawData {
-    mesh* myMesh;
+struct DrawData {
+    Mesh* mesh;
     glm::mat4 model;
     
-    drawData(mesh* m, glm::mat4 mod): myMesh(m), model(mod) {}
+    DrawData(Mesh* m, glm::mat4 mod): mesh(m), model(mod) {}
 };
 
-class renderQueue {
+class RenderQueue {
     private:
-        void drawMesh(drawData& data);
+        void drawMesh(DrawData& data);
 
     public:
-        shader* activeShader;
-        std::vector<drawData> queue;
+        Shader* activeShader;
+        std::vector<DrawData> queue;
         
         bool drawWireframe = false;
-        void generateBuffer(mesh* Mesh);
+        void generateBuffer(Mesh* mesh);
+        void updateBuffer(Mesh* mesh);
 
-        void draw(camera& cam, int width, int height);
+        void draw(Camera& cam, int width, int height);
 };
 
 #endif

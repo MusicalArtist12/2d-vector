@@ -5,17 +5,17 @@
 #include <iostream>
 
 template <typename T>
-bool linkedList<T>::isEmpty() {
+bool LinkedList<T>::isEmpty() {
     return (head == nullptr);
 }
 
 template <typename T> 
-T linkedList<T>::remove(std::string name) {
+T LinkedList<T>::remove(std::string name) {
     if (isEmpty()) {
         throw std::invalid_argument("object does not exist");
     }
 
-    node<T>* ptr = head;
+    Node<T>* ptr = head;
 
     if (ptr->name == name) {
         head = nullptr;
@@ -26,7 +26,7 @@ T linkedList<T>::remove(std::string name) {
     } 
 
     while (ptr->next != nullptr) {
-        node<T>* parent = ptr;
+        Node<T>* parent = ptr;
         ptr = ptr->next;
 
         if (ptr->name == name) {
@@ -47,15 +47,15 @@ T linkedList<T>::remove(std::string name) {
 }
 
 template <typename T> 
-T& linkedList<T>::add(std::string name, T value, bool& newEntry) {
+T& LinkedList<T>::add(std::string name, T value, bool& newEntry) {
     newEntry = true;
 
     if (isEmpty()) {
-        head = new node<T>(name, value);
+        head = new Node<T>(name, value);
         return head->value;
     }
 
-    node<T>* ptr = head;
+    Node<T>* ptr = head;
 
     while (ptr->name != name && ptr->next != nullptr) { 
         ptr = ptr->next;
@@ -66,17 +66,17 @@ T& linkedList<T>::add(std::string name, T value, bool& newEntry) {
         return ptr->value;  
     }
 
-    ptr->next = new node<T>(name, value);
+    ptr->next = new Node<T>(name, value);
     return ptr->next->value;
 }
 
 template <typename T>
-T& linkedList<T>::entry(std::string name) {
+T& LinkedList<T>::entry(std::string name) {
     if (isEmpty()) {
         throw std::invalid_argument("cannot get reference to a non-existant value");
     }
 
-    node<T>* ptr = head;
+    Node<T>* ptr = head;
     if (ptr->name == name) {
         return ptr->value;
     }
@@ -93,12 +93,12 @@ T& linkedList<T>::entry(std::string name) {
 }
 
 template <typename T>
-bool linkedList<T>::hasEntry(std::string name) {
+bool LinkedList<T>::hasEntry(std::string name) {
     if (isEmpty()) {
         return false;
     }
 
-    node<T>* ptr = head;
+    Node<T>* ptr = head;
     if (ptr->name == name) {
         return true;
     }
@@ -112,7 +112,7 @@ bool linkedList<T>::hasEntry(std::string name) {
 
 
 template <typename T>
-int dictionary<T>::hash(std::string name) {
+int Dictionary<T>::hash(std::string name) {
     int value = 0;
 
     for (int i = 0; i < name.length(); i++) {
@@ -123,13 +123,13 @@ int dictionary<T>::hash(std::string name) {
 }
 
 template <typename T>
-T dictionary<T>::remove(std::string name) {
+T Dictionary<T>::remove(std::string name) {
     resetCache();
     return dict[hash(name)].remove(name);
 }
 
 template <typename T>
-T& dictionary<T>::add(std::string name, T initial) {
+T& Dictionary<T>::add(std::string name, T initial) {
     bool newEntry;
     T& entry = dict[hash(name)].add(name, initial, newEntry);
     if (newEntry) {
@@ -140,12 +140,12 @@ T& dictionary<T>::add(std::string name, T initial) {
 }
 
 template <typename T>
-T& dictionary<T>::entry(std::string name) {
+T& Dictionary<T>::entry(std::string name) {
     return dict[hash(name)].entry(name);
 }
 
 template <typename T>
-void dictionary<T>::updatePtrList() {
+void Dictionary<T>::updatePtrList() {
     _ptrList.clear();
     
     for (int i = 0; i < length; i++) {
@@ -153,7 +153,7 @@ void dictionary<T>::updatePtrList() {
             continue;
         }
 
-        node<T>* ptr = dict[i].head;
+        Node<T>* ptr = dict[i].head;
 
         _ptrList.push_back(ptr);
 
@@ -167,7 +167,7 @@ void dictionary<T>::updatePtrList() {
 }
 
 template <typename T>
-T& dictionary<T>::getRef(int idx) { 
+T& Dictionary<T>::getRef(int idx) { 
     if (!ptrListUpToDate) {
         updatePtrList();
     }
@@ -176,7 +176,7 @@ T& dictionary<T>::getRef(int idx) {
 }
 
 template <typename T>
-std::string dictionary<T>::getID(int idx) {
+std::string Dictionary<T>::getID(int idx) {
     if (!ptrListUpToDate) {
         updatePtrList();
     }
@@ -185,7 +185,7 @@ std::string dictionary<T>::getID(int idx) {
 }
 
 template <typename T>
-int dictionary<T>::size() {
+int Dictionary<T>::size() {
     if (!ptrListUpToDate) {
         updatePtrList();
     }
@@ -194,7 +194,7 @@ int dictionary<T>::size() {
 }
 
 template <typename T>
-bool dictionary<T>::hasEntry(std::string name) {
+bool Dictionary<T>::hasEntry(std::string name) {
     return dict[hash(name)].hasEntry(name);
 }
 

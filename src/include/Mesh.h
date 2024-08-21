@@ -11,13 +11,13 @@ enum IndexMode {
     TRIANGLE
 };
 
-struct vertex {
+struct Vertex {
     float pos[3];
     float rgba[4];
 
-    vertex() {}
+    Vertex() {}
 
-    vertex(float x, float y, float r, float g, float b, float a) {
+    Vertex(float x, float y, float r, float g, float b, float a) {
         pos[0] = x;
         pos[1] = y;
         pos[2] = 0.0;
@@ -29,8 +29,8 @@ struct vertex {
     }
 };
 
-struct mesh {
-    std::vector<vertex> vertices;
+struct Mesh {
+    std::vector<Vertex> vertices;
     std::vector<unsigned int> index;
 
     unsigned int VAO;
@@ -38,15 +38,16 @@ struct mesh {
     unsigned int EBO;
 
     bool generated;
+    bool upToDate;
 
     IndexMode mode = TRIANGLE;
 
-    mesh(std::vector<vertex>& v, std::vector<unsigned int>& i);
+    Mesh(std::vector<Vertex>& v, std::vector<unsigned int>& i);
     float radius();
     glm::vec3 center();
 };
 
-void setColor(mesh* myMesh, float r, float g, float b, float a);
-mesh genPolygon(int numSides);
+void setColor(Mesh* myMesh, float r, float g, float b, float a);
+Mesh genPolygon(int numSides);
 
 #endif

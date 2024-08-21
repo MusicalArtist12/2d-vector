@@ -4,7 +4,7 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
 
-int window::initGLFW() {
+int Window::initGLFW() {
     if (glfwInit() == 0) {
         std::cout << "Failed to initalize GLFW" << std::endl;
         return 0;
@@ -17,7 +17,7 @@ int window::initGLFW() {
     return 1;
 }
 
-int window::initWindow() {
+int Window::initWindow() {
     ID = glfwCreateWindow(width, height, title, NULL, NULL);
     if (ID == NULL) {
         std::cout << "Failed to create Window" << std::endl;
@@ -32,7 +32,7 @@ int window::initWindow() {
     return 1;
 } 
 
-int window::initOpenGL() {
+int Window::initOpenGL() {
     if (gladLoadGL(glfwGetProcAddress) == 0) {
         std::cout << "Failed to create OpenGL context" <<std::endl;
         return 0;
@@ -44,7 +44,7 @@ int window::initOpenGL() {
     return 1;
 }
 
-int window::initImGui() {
+int Window::initImGui() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -56,7 +56,7 @@ int window::initImGui() {
     return 1;
 }
 
-window::window(const char* t): title(t), width(1920), height(1080), deltaTime(0.0f), lastFrame(0.0f) {
+Window::Window(const char* t): title(t), width(1920), height(1080), deltaTime(0.0f), lastFrame(0.0f) {
     initGLFW();
     initWindow();
     initOpenGL();
@@ -64,36 +64,45 @@ window::window(const char* t): title(t), width(1920), height(1080), deltaTime(0.
 
 }
 
-void window::refresh() {
+void Window::refresh() {
     glfwSwapBuffers(ID);
     glfwPollEvents();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
 
     glfwGetFramebufferSize(ID, &width, &height);
     glViewport(0, 0, width, height);
-}
-
-void window::render() {
     updateClock();
 
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);  
 }
 
-void window::terminate() {
+void Window::startImgui() {
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    
+}
+
+void Window::renderImgui() {
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+}
+
+void Window::render() {
+    glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);  
+
+}
+
+void Window::terminate() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
     glfwTerminate();
 }
 
-int window::readKey(int key) {
+int Window::readKey(int key) {
     ImGuiIO& io = ImGui::GetIO();
     if(io.WantCaptureKeyboard) {
         return 0;
@@ -102,7 +111,7 @@ int window::readKey(int key) {
     return glfwGetKey(ID, key);
 }
 
-int window::readMouseButton(int key) {
+int Window::readMouseButton(int key) {
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureMouse) {
         return 0;
@@ -111,7 +120,7 @@ int window::readMouseButton(int key) {
     return glfwGetMouseButton(ID, key);
 }
 
-void window::readMousePos(double* x, double* y) {
+void Window::readMousePos(double* x, double* y) {
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureMouse) {
         return;
@@ -120,7 +129,7 @@ void window::readMousePos(double* x, double* y) {
     glfwGetCursorPos(ID, x, y);
 }
 
-void window::updateClock() {
+void Window::updateClock() {
     float currentFrame = glfwGetTime(); // glfwGetTIme returns seconds
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;  

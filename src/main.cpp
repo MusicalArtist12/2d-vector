@@ -11,54 +11,64 @@
 #include "Render.h"
 #include "World.h"
 
-window Window("Title");
-renderQueue RenderQueue;
-world World;
-camera mainCam;
+Window window("Title");
+RenderQueue renderQueue;
+World world;
+Camera mainCam;
 
-dictionary<bool *> appBools(26);
+Dictionary<bool *> appBools(26);
 
 ImGuiWindowFlags myFlags;
 
-void cameraApp(camera& myCam, bool* run, std::string ID);
+void cameraApp(Camera& myCam, bool* run, std::string ID);
 void windowApp(bool* run, std::string ID);
 void worldApp(bool* run, std::string ID);
-void objectSubApp(physObject& myObject);
+void objectSubApp(PhysObject& myObject);
 void spawnPolyApp(bool* run, std::string ID);
 
 const float PADDLE_SPEED = 5;
 
-void cancelMovement(physObject& object, keyCallback* self) {
+void cancelMovement(PhysObject& object, KeyCallback* self) {
     object.vel = glm::vec3(0, 0, 0);
 
     object.removeKeyCallback(self->name);
 }
 
-void moveUp(physObject& object, keyCallback* self) {
+void moveUp(PhysObject& object, KeyCallback* self) {
     object.vel = glm::vec3(0, PADDLE_SPEED, 0);
     
     object.addKeyCallback("cancel up", self->key, GLFW_RELEASE, cancelMovement);
 }
 
-void moveDown(physObject& object, keyCallback* self) {
+void moveDown(PhysObject& object, KeyCallback* self) {
     object.vel = glm::vec3(0, -PADDLE_SPEED, 0);
     
     object.addKeyCallback("cancel down", self->key, GLFW_RELEASE, cancelMovement);
 }
 
+void collisionCallback(PhysObject* self, PhysObject& objB, float deltaTime) {
+    glm::vec3 tempvel = self->vel;
+
+    self->vel = glm::vec3(0.0);
+
+    self->transferEnergy(objB, deltaTime);
+
+    self->vel = tempvel;
+}
+
 int main() { 
-    RenderQueue.activeShader = new shader("data/shaders/gen.vert", "data/shaders/gen.frag");
+    renderQueue.activeShader = new Shader("data/shaders/gen.vert", "data/shaders/gen.frag");
     
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.Fonts->AddFontFromFileTTF("data/fonts/SourceCodePro-Regular.otf", 18);
 
-    std::vector<vertex> wallVertices = {
-        vertex(-0.25f, -1, 1, 1, 1, 1), 
-        vertex(-0.25f, 1, 1, 1, 1, 1), 
-        vertex(0.25f, -1, 1, 1, 1, 1), 
-        vertex(0.25f, 1, 1, 1, 1, 1), 
+    std::vector<Vertex> wallVertices = {
+        Vertex(-0.25f, -1, 1, 1, 1, 1), 
+        Vertex(-0.25f, 1, 1, 1, 1, 1), 
+        Vertex(0.25f, -1, 1, 1, 1, 1), 
+        Vertex(0.25f, 1, 1, 1, 1, 1), 
     };
 
     std::vector<unsigned int> wallIndices = {
@@ -66,44 +76,55 @@ int main() {
         1, 2, 3
     };
 
-    World.add(physObject(mesh(genPolygon(50)), "pong ball"));
-    World.add(physObject(mesh(wallVertices, wallIndices), "left wall")).pos = glm::vec3(-10, 0, 0);
-    World.add(physObject(mesh(wallVertices, wallIndices), "right wall")).pos = glm::vec3(10, 0, 0);
+    world.add(PhysObject(Mesh(genPolygon(50)), "pong ball"));
+    world.add(PhysObject(Mesh(wallVertices, wallIndices), "left wall")).pos = glm::vec3(-10, 0, 0);
+    world.add(PhysObject(Mesh(wallVertices, wallIndices), "right wall")).pos = glm::vec3(10, 0, 0);
     
-    World.entry("left wall").isStatic = true;
-    World.entry("right wall").isStatic = true;
+    world.entry("left wall").isStatic = true;
+    world.entry("right wall").isStatic = true;
 
-    World.entry("left wall").addKeyCallback(
+    world.entry("left wall").addKeyCallback(
         "up",
         GLFW_KEY_W,
         GLFW_PRESS,
         moveUp
     );
 
-    World.entry("right wall").addKeyCallback(
+    world.entry("right wall").addKeyCallback(
         "up",
         GLFW_KEY_I,
         GLFW_PRESS,
         moveUp
     );
 
-    World.entry("left wall").addKeyCallback(
+    world.entry("left wall").addKeyCallback(
         "down",
         GLFW_KEY_S,
         GLFW_PRESS,
         moveDown
     );
 
-    World.entry("right wall").addKeyCallback(
+    world.entry("right wall").addKeyCallback(
         "down",
         GLFW_KEY_K,
         GLFW_PRESS,
         moveDown
     );
 
-    while (!Window.shouldClose()) {
-        Window.refresh();
+    world.entry("left wall").collisionCallback = collisionCallback;
+    world.entry("right wall").collisionCallback = collisionCallback;
+
+    while (!window.shouldClose()) {
+        window.refresh();
         
+        mainCam.inputLoop(window);
+        world.update(window, renderQueue);
+
+        renderQueue.draw(mainCam, window.width, window.height);
+
+        window.render();
+        window.startImgui();
+
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("Window")) {
                 for (int i = 0; i < appBools.size(); i++) {
@@ -125,18 +146,15 @@ int main() {
             ImGui::ShowDemoWindow(); 
         }
         
-        mainCam.InputLoop(Window);
-        World.update(Window, RenderQueue);
 
-        RenderQueue.draw(mainCam, Window.width, Window.height);
-        Window.render(); 
+        window.renderImgui();
     }
 
-    Window.terminate();
+    window.terminate();
     return 0;
 }
 
-void cameraApp(camera& myCam, bool* run, std::string ID) {
+void cameraApp(Camera& myCam, bool* run, std::string ID) {
     if (!*run) {
         return; 
     }
@@ -165,21 +183,21 @@ void windowApp(bool* run, std::string ID) {
         return;
     }
 
-    ImGui::Text("Clock Rate: %3f", Window.deltaTime);
-    float framerate = 1.0f / Window.deltaTime; // this really needs to be an average of like 5...
+    ImGui::Text("Clock Rate: %3f", window.deltaTime);
+    float framerate = 1.0f / window.deltaTime; // this really needs to be an average of like 5...
     ImGui::Text("Framerate: %3f", framerate);
-    ImGui::Text("Height: %3u", Window.height);
-    ImGui::Text("Width: %3u", Window.width);
+    ImGui::Text("Height: %3u", window.height);
+    ImGui::Text("Width: %3u", window.width);
 
-    ImGui::ColorPicker3("background", (float*)&Window.clearColor);
+    ImGui::ColorPicker3("background", (float*)&window.clearColor);
 
     ImGui::Text("Draw Wireframe: ");
     ImGui::SameLine();
-    if (RenderQueue.drawWireframe == false and ImGui::Button("Enable")) {
-        RenderQueue.drawWireframe = true;
+    if (renderQueue.drawWireframe == false and ImGui::Button("Enable")) {
+        renderQueue.drawWireframe = true;
     }
-    if (RenderQueue.drawWireframe == true and ImGui::Button("Disable")) {
-        RenderQueue.drawWireframe = false;
+    if (renderQueue.drawWireframe == true and ImGui::Button("Disable")) {
+        renderQueue.drawWireframe = false;
     }
 
     ImGui::End();
@@ -196,23 +214,23 @@ void worldApp(bool* run, std::string ID) {
     }
 
     ImGui::Text("Physics Settings");
-    ImGui::DragFloat("Gravity", &World.grav);
-    ImGui::InputInt("Counts Per Frame", &World.countsPerFrame, 1);
-    ImGui::Checkbox("Use Gravity", &World.useGravity);
-    ImGui::Checkbox("Use Collisions", &World.useCollisions);
-    ImGui::Checkbox("Paused", &World.isPaused);
-    ImGui::Text("Number of Objects: %i", World.tableSize());
+    ImGui::DragFloat("Gravity", &world.grav);
+    ImGui::InputInt("Counts Per Frame", &world.countsPerFrame, 1);
+    ImGui::Checkbox("Use Gravity", &world.useGravity);
+    ImGui::Checkbox("Use Collisions", &world.useCollisions);
+    ImGui::Checkbox("Paused", &world.isPaused);
+    ImGui::Text("Number of Objects: %i", world.tableSize());
 
-    for (int i = 0; i < World.tableSize(); i++) {
-        if (ImGui::CollapsingHeader( World.getRef(i).ID.c_str() ) ) {
-            objectSubApp(World.getRef(i));
+    for (int i = 0; i < world.tableSize(); i++) {
+        if (ImGui::CollapsingHeader( world.getRef(i).ID.c_str() ) ) {
+            objectSubApp(world.getRef(i));
         }
     }
 
     ImGui::End();
 }
 
-void objectSubApp(physObject& myObject) {
+void objectSubApp(PhysObject& myObject) {
     ImGui::PushID(&myObject);
     
     ImGui::DragFloat2("Position", (float*)&myObject.pos);
@@ -236,7 +254,7 @@ void objectSubApp(physObject& myObject) {
         ImGui::TreePop();
 
         if (ImGui::Button("Update Mesh")) {
-            myObject.myMesh.generated=false;
+            myObject.myMesh.upToDate = false;
         }
     }
 

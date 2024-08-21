@@ -10,7 +10,7 @@
 #include "Window.h"
 
 
-class camera {
+class Camera {
     private:
         const float maxScale = 10000;
         const float minScale = 1.00;
@@ -23,9 +23,9 @@ class camera {
         glm::mat4 view();
         glm::mat4 projection(int width, int height);
 
-        void InputLoop(window& Window);
+        void inputLoop(Window& window);
         
-        camera(): scale(100), speed(1000.0), pos(0.0f, 0.0f) {}
+        Camera(): scale(100), speed(1000.0), pos(0.0f, 0.0f) {}
 
 };
 

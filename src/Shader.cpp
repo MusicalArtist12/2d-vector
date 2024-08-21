@@ -1,10 +1,10 @@
 #include "Shader.h"
-
+#include <string.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
-void shader::drawMesh(GLuint VAO, int size, glm::mat4 model) {
+void Shader::drawMesh(GLuint VAO, int size, glm::mat4 model) {
     bind();
 
     setUniform4fv("model", model);
@@ -12,11 +12,9 @@ void shader::drawMesh(GLuint VAO, int size, glm::mat4 model) {
     glBindVertexArray(VAO);
 
     glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, 0);
-
-    unbind();
 }
 
-void shader::setView(glm::mat4 view, glm::mat4 projection) {
+void Shader::setView(glm::mat4 view, glm::mat4 projection) {
     bind();
 
     setUniform4fv("view", view);
@@ -25,7 +23,7 @@ void shader::setView(glm::mat4 view, glm::mat4 projection) {
     unbind();
 }
 
-void shader::generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, vertex* vertices, int vSize, GLuint* index, int iSize) {
+void Shader::generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, Vertex* vertices, int vSize, GLuint* index, int iSize) {
     glGenVertexArrays(1, VAO); 
 
     glBindVertexArray(*VAO);
@@ -35,35 +33,49 @@ void shader::generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, vertex* verti
 
     // VBO
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-    glBufferData(GL_ARRAY_BUFFER, (vSize * sizeof(vertex)), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (vSize * sizeof(Vertex)), vertices, GL_STATIC_DRAW);
     // type of buffer, size of buffer we want to pass, data, how its managed
     
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, (iSize * sizeof(GLuint)), index, GL_STATIC_DRAW);
 
     // Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(0);
 
     // vertex rgba
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(3* sizeof(float)));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3* sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0); 
 }
 
-void shader::bind() {
+void Shader::updateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, Vertex* vertices, int vSize, GLuint* index, int iSize) {
+    glBindVertexArray(*VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (vSize * sizeof(Vertex)), nullptr);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (vSize * sizeof(Vertex)), vertices);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, *EBO);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, (iSize * sizeof(GLuint)), nullptr);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, (iSize * sizeof(GLuint)), index);
+    glBindVertexArray(0); 
+}
+
+void Shader::bind() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     
     glUseProgram(ID);
 }
 
-void shader::unbind() {
+void Shader::unbind() {
     glUseProgram(0);
 }
 
-void shader::setUniform3fv(const std::string& name, glm::mat3 matrix) {
+void Shader::setUniform3fv(const std::string& name, glm::mat3 matrix) {
     bind();
 
     int matrixID = glGetUniformLocation(ID, name.c_str());
@@ -75,7 +87,7 @@ void shader::setUniform3fv(const std::string& name, glm::mat3 matrix) {
 
 }
 
-void shader::setUniform4fv(const std::string& name, glm::mat4 matrix) {
+void Shader::setUniform4fv(const std::string& name, glm::mat4 matrix) {
     bind();
 
     int matrixID = glGetUniformLocation(ID, name.c_str());
@@ -87,7 +99,7 @@ void shader::setUniform4fv(const std::string& name, glm::mat4 matrix) {
 
 }
 
-void shader::setUniform1i(const std::string& name, int val) {
+void Shader::setUniform1i(const std::string& name, int val) {
     bind();
     
     int ufID = glGetUniformLocation(ID, name.c_str());
@@ -98,7 +110,7 @@ void shader::setUniform1i(const std::string& name, int val) {
     }
 }
 
-void shader::setUniform1f(const std::string& name, float val) {
+void Shader::setUniform1f(const std::string& name, float val) {
     bind();
     
     int ufID = glGetUniformLocation(ID, name.c_str());
@@ -109,7 +121,7 @@ void shader::setUniform1f(const std::string& name, float val) {
     }
 }
 
-void shader::setUniform3f(const std::string& name, glm::vec3 val) {
+void Shader::setUniform3f(const std::string& name, glm::vec3 val) {
     bind();
     
     int ufID = glGetUniformLocation(ID, name.c_str());
@@ -120,7 +132,7 @@ void shader::setUniform3f(const std::string& name, glm::vec3 val) {
     }
 }
 
-void shader::setUniform4f(const std::string& name, glm::vec4 val) {
+void Shader::setUniform4f(const std::string& name, glm::vec4 val) {
     bind();
     
     int ufID = glGetUniformLocation(ID, name.c_str());
@@ -131,7 +143,7 @@ void shader::setUniform4f(const std::string& name, glm::vec4 val) {
     }
 }
 
-shader::shader(const char* vertex_path, const char* fragment_path) {
+Shader::Shader(const char* vertex_path, const char* fragment_path) {
 
     std::ifstream vShaderFile;
     std::ifstream fShaderFile;
