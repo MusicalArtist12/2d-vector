@@ -68,7 +68,7 @@ void physObject::resolveCollision(physObject& objB, float deltaTime) {
 }
 
 bool physObject::isColliding(physObject& objB) {
-    if(ID == objB.ID) { 
+    if(ID == objB.ID || isGhost) { 
         return false;
     }
     if (glm::distance(pos, objB.pos) <= radius() + objB.radius()) {
@@ -78,20 +78,29 @@ bool physObject::isColliding(physObject& objB) {
     return false;
 }
 
-physObject::physObject(mesh shape, std::string id): ID(id), myMesh(shape), pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), forceVectors(26), collisionCallback(nullptr) {}
+physObject::physObject(mesh shape, std::string id): ID(id), myMesh(shape), pos(0.0f), vel(0.0f), mass(1.0f), isStatic(false), isGhost(false), forceVectors(26), collisionCallback(nullptr) {}
 
-void physObject::addKeyCallback(int key, int state, void (*callback)(physObject&)) {
+void physObject::addKeyCallback(std::string name, int key, int state, void (*callback)(physObject&, keyCallback* self)) {
     callbacks.push_back({
         key,
         state,
-        callback
+        callback,
+        name
     });
+}
+
+void physObject::removeKeyCallback(std::string name) {
+    for (int i = 0; i < callbacks.size(); i++) {
+        if (callbacks[i].name == name) {
+            callbacks.erase(callbacks.begin()+i);
+        }
+    }
 }
 
 void physObject::inputLoop(window& Window) {
     for (int i = 0; i < callbacks.size(); i++) {
         if (Window.readKey(callbacks[i].key) == callbacks[i].state) {
-            callbacks[i].callback(*this);
+            callbacks[i].callback(*this, &callbacks[i]);
         }
     }
 }
@@ -101,20 +110,19 @@ void physObject::inputLoop(window& Window) {
 void world::update(window& Window, renderQueue& RenderQueue) {
     float deltaTime = Window.deltaTime > 0 ? Window.deltaTime : 0;
    
-    for (int i = 0; i < objectTable.size(); i++) {
-        physObject& iObj = objectTable.getRef(i);
-        
-        iObj.inputLoop(Window);
+    if (!isPaused) {
+        for (int i = 0; i < objectTable.size(); i++) {
+            physObject& iObj = objectTable.getRef(i);
+            iObj.inputLoop(Window);
+        }
+
+        for (int i = 0; i < countsPerFrame; i++) {
+            updateMovement(deltaTime/(float)(countsPerFrame));
+        }
     }
 
-    for (int i = 0; i < countsPerFrame; i++) {
-        updateMovement(deltaTime/(float)(countsPerFrame));
-    }
-
     for (int i = 0; i < objectTable.size(); i++) {
         physObject& iObj = objectTable.getRef(i);
-        
-        iObj.inputLoop(Window);
         RenderQueue.queue.push_back(drawData(&iObj.myMesh, iObj.modelMatrix()));
     }
 }
@@ -122,17 +130,22 @@ void world::update(window& Window, renderQueue& RenderQueue) {
 void world::updateMovement(float deltaTime) {
     for (int i = 0; i < objectTable.size(); i++) {
         physObject& iObject = objectTable.getRef(i);
-        if (usePhysics) {
-            updateCollisions(iObject, deltaTime);
+        
+        if (!iObject.isStatic) {
+            if (useGravity) {
+                addGravity(iObject);
+            }
+            
+            if (useCollisions) {
+                updateCollisions(iObject, deltaTime);
+            }
         }
     }
 
     for (int i = 0; i < objectTable.size(); i++) {
         physObject& iObject = objectTable.getRef(i);
-        
-        if (usePhysics && !iObject.isStatic) {
-            calculateMovement(iObject, deltaTime); 
-        } 
+
+        calculateMovement(iObject, deltaTime); 
     }
 }
 
@@ -140,7 +153,7 @@ void world::updateCollisions(physObject& obj, float deltaTime) {
     for (int j = 0; j < objectTable.size(); j++) {
         physObject& iObj = objectTable.getRef(j);
 
-        if (obj.isColliding(iObj)) {
+        if (obj.isColliding(iObj) && iObj.isColliding(obj)) {
             if (!obj.forceVectors.hasEntry(iObj.ID) || !iObj.forceVectors.hasEntry(obj.ID)){
                 obj.resolveCollision(iObj, deltaTime);
                 iObj.resolveCollision(obj, deltaTime);
@@ -159,7 +172,6 @@ void world::updateCollisions(physObject& obj, float deltaTime) {
 }
 
 void world::calculateMovement(physObject& obj, float deltaTime) {
-    addGravity(obj);
     
     glm::vec3 accel = obj.forceSum() / obj.mass;
 

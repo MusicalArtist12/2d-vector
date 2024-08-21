@@ -20,7 +20,8 @@ class physObject;
 struct keyCallback {
     int key;
     int state;
-    void (*callback)(physObject&);
+    void (*callback)(physObject&, keyCallback* self);
+    std::string name;
 };
 
 class physObject {
@@ -32,7 +33,12 @@ class physObject {
         glm::vec3 vel;
         
         float mass;
+
+        // completely unmoving. still has collisions
         bool isStatic;
+
+        // no collisions
+        bool isGhost;
 
         std::vector<keyCallback> callbacks;
         dictionary<glm::vec3> forceVectors;
@@ -51,7 +57,8 @@ class physObject {
         
         void (*collisionCallback)(physObject& objA, physObject& objB, float deltaTime);
 
-        void addKeyCallback(int key, int state, void (*callback)(physObject&));
+        void addKeyCallback(std::string name, int key, int state, void (*callback)(physObject&, keyCallback* self));
+        void removeKeyCallback(std::string name);
         void inputLoop(window& Window);
 
         physObject(mesh shape, std::string id);
@@ -70,7 +77,9 @@ class world {
 
     public:   
         float grav;
-        bool usePhysics;
+        bool useGravity;
+        bool useCollisions;
+        bool isPaused;
         int countsPerFrame = 10;
 
         void update(window& Window, renderQueue& queue);
@@ -91,7 +100,7 @@ class world {
         // used to remove forces that should not exist.
         bool isValidForce(std::string ID);
         
-        world(): objectTable(676), grav(0.0f), usePhysics(false) {}
+        world(): objectTable(676), grav(0.0f), useGravity(false), useCollisions(false), isPaused(true) {}
 };
 
 

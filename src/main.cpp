@@ -26,20 +26,24 @@ void worldApp(bool* run, std::string ID);
 void objectSubApp(physObject& myObject);
 void spawnPolyApp(bool* run, std::string ID);
 
-const float PADDLE_SPEED = 3.5;
+const float PADDLE_SPEED = 5;
 
-void moveUp(physObject& object) {
-    std::cout << "up\n"; 
-    
-    object.vel = glm::vec3(0, PADDLE_SPEED, 0);
-}
-
-void moveDown(physObject& object) {
-    object.vel = glm::vec3(0, -PADDLE_SPEED, 0);
-}
-
-void cancelMovement(physObject& object) {
+void cancelMovement(physObject& object, keyCallback* self) {
     object.vel = glm::vec3(0, 0, 0);
+
+    object.removeKeyCallback(self->name);
+}
+
+void moveUp(physObject& object, keyCallback* self) {
+    object.vel = glm::vec3(0, PADDLE_SPEED, 0);
+    
+    object.addKeyCallback("cancel up", self->key, GLFW_RELEASE, cancelMovement);
+}
+
+void moveDown(physObject& object, keyCallback* self) {
+    object.vel = glm::vec3(0, -PADDLE_SPEED, 0);
+    
+    object.addKeyCallback("cancel down", self->key, GLFW_RELEASE, cancelMovement);
 }
 
 int main() { 
@@ -66,28 +70,32 @@ int main() {
     World.add(physObject(mesh(wallVertices, wallIndices), "left wall")).pos = glm::vec3(-10, 0, 0);
     World.add(physObject(mesh(wallVertices, wallIndices), "right wall")).pos = glm::vec3(10, 0, 0);
     
-    // World.entry("left wall").isStatic = true;
-    // World.entry("right wall").isStatic = true;
+    World.entry("left wall").isStatic = true;
+    World.entry("right wall").isStatic = true;
 
     World.entry("left wall").addKeyCallback(
+        "up",
         GLFW_KEY_W,
         GLFW_PRESS,
         moveUp
     );
 
     World.entry("right wall").addKeyCallback(
+        "up",
         GLFW_KEY_I,
         GLFW_PRESS,
         moveUp
     );
 
     World.entry("left wall").addKeyCallback(
+        "down",
         GLFW_KEY_S,
         GLFW_PRESS,
         moveDown
     );
 
     World.entry("right wall").addKeyCallback(
+        "down",
         GLFW_KEY_K,
         GLFW_PRESS,
         moveDown
@@ -190,7 +198,9 @@ void worldApp(bool* run, std::string ID) {
     ImGui::Text("Physics Settings");
     ImGui::DragFloat("Gravity", &World.grav);
     ImGui::InputInt("Counts Per Frame", &World.countsPerFrame, 1);
-    ImGui::Checkbox("Use Physics", &World.usePhysics);
+    ImGui::Checkbox("Use Gravity", &World.useGravity);
+    ImGui::Checkbox("Use Collisions", &World.useCollisions);
+    ImGui::Checkbox("Paused", &World.isPaused);
     ImGui::Text("Number of Objects: %i", World.tableSize());
 
     for (int i = 0; i < World.tableSize(); i++) {

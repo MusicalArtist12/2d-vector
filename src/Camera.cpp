@@ -7,8 +7,8 @@
 #include <imgui.h>
 
 glm::mat4 camera::projection(int width, int height) {
-    float relWidth = width / 2.0 * scale;
-    float relHeight = height / 2.0 * scale;
+    float relWidth = width / (2.0 * scale);
+    float relHeight = height / (2.0 * scale);
     
     float left = -1.0 * relWidth;
     float right = 1.0 * relWidth;
