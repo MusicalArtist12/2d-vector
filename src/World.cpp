@@ -104,10 +104,14 @@ bool PhysObject::isColliding(PhysObject& objB) {
 
     std::vector<Polygon> relevantPolygons;
 
-    for (int i = 0; i < myMesh.index.size(); i+= 3) {
-        Vertex& a = myMesh.vertices[i];
-        Vertex& b = myMesh.vertices[i + 1];
-        Vertex& c = myMesh.vertices[i + 2];
+    BufferMap vbo = BufferMap(&myMesh.VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
+    Vertex* vertices = (Vertex*)vbo.data;
+
+    for (int i = 0; i < myMesh.numIndices; i+= 3) {
+        
+        Vertex& a = vertices[i];
+        Vertex& b = vertices[i + 1];
+        Vertex& c = vertices[i + 2];
 
         // if any of these vertices are within direction rotated += angle, then the entire polygon matters.
 
@@ -116,39 +120,33 @@ bool PhysObject::isColliding(PhysObject& objB) {
         float angleB = glm::atan(b.pos[1], b.pos[0]);
         float angleC = glm::atan(c.pos[1], c.pos[0]);
 
-        if (angleA <= angle || angleB <= angle || angleC <= angle) {
+        if ((direction_angle - angle <= angleA && direction_angle + angle >= angleA) ||
+            (direction_angle - angle <= angleB && direction_angle + angle >= angleB) ||
+            (direction_angle - angle <= angleC && direction_angle + angle >= angleC)) {
             relevantPolygons.push_back({a, b, c});
         } 
 
     }
 
-    std::cout << "angle: " << angle << " start\n";
-
+    // std::cout << "angle: " << angle << " polygon ID: " << ID << "\n";
+    
     for (int i = 0; i < relevantPolygons.size(); i++) {
-        std::cout << "polygon " << i << "\n";
-        std::cout << "1: " << relevantPolygons[i].a.pos[0] << " " << relevantPolygons[i].a.pos[1] << " " << relevantPolygons[i].a.pos[2] << "\n";
-        std::cout << "2: " << relevantPolygons[i].b.pos[0] << " " << relevantPolygons[i].b.pos[1] << " " << relevantPolygons[i].b.pos[2] << "\n";
-        std::cout << "3: " << relevantPolygons[i].c.pos[0] << " " << relevantPolygons[i].c.pos[1] << " " << relevantPolygons[i].c.pos[2] << "\n";
-        std::cout << "\n";
+        // std::cout << relevantPolygons[i].a.pos[0] << ' ' << relevantPolygons[i].a.pos[1] << ' ' <<  relevantPolygons[i].a.pos[2] << '\n';
+        // std::cout << relevantPolygons[i].b.pos[0] << ' ' << relevantPolygons[i].b.pos[1] << ' ' <<  relevantPolygons[i].b.pos[2] << '\n';
+        // std::cout << relevantPolygons[i].c.pos[0] << ' ' << relevantPolygons[i].c.pos[1] << ' ' <<  relevantPolygons[i].c.pos[2] << "\n\n";
 
-        
-        relevantPolygons[i].a.rgba[0] = 1.0f;
-        relevantPolygons[i].b.rgba[0] = 1.0f;
-        relevantPolygons[i].c.rgba[0] = 1.0f;
+        relevantPolygons[i].a.rgba[0] = 1.0;
+        relevantPolygons[i].a.rgba[1] = 0.0;
+        relevantPolygons[i].a.rgba[2] = 0.0;
 
-        relevantPolygons[i].a.rgba[1] = 0.0f;
-        relevantPolygons[i].b.rgba[1] = 0.0f;
-        relevantPolygons[i].c.rgba[1] = 0.0f;
+        relevantPolygons[i].b.rgba[0] = 1.0;
+        relevantPolygons[i].b.rgba[1] = 0.0;
+        relevantPolygons[i].b.rgba[2] = 0.0;
 
-        relevantPolygons[i].a.rgba[2] = 0.0f;
-        relevantPolygons[i].b.rgba[2] = 0.0f;
-        relevantPolygons[i].c.rgba[2] = 0.0f;
+        relevantPolygons[i].c.rgba[0] = 1.0;
+        relevantPolygons[i].c.rgba[1] = 0.0;
+        relevantPolygons[i].c.rgba[2] = 0.0;
 
-        relevantPolygons[i].a.rgba[3] = 1.0f;
-        relevantPolygons[i].b.rgba[3] = 1.0f;
-        relevantPolygons[i].c.rgba[3] = 1.0f;
-
-        myMesh.upToDate = false;
     }
 
 

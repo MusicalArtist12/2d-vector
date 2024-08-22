@@ -9,33 +9,16 @@ void RenderQueue::drawMesh(DrawData& data) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    if (!data.mesh->generated) {
-        generateBuffer(data.mesh);
-    }
-
-    if (!data.mesh->upToDate) {
-        updateBuffer(data.mesh);
-    }
-    
     
     if (data.mesh->mode == TRIANGLE) {
-        activeShader->drawMesh(data.mesh->VAO, data.mesh->index.size(), data.model);
+        activeShader->drawMesh(data.mesh->VAO, data.mesh->numIndices, data.model);
     }
 }
 
-void RenderQueue::generateBuffer(Mesh* mesh) {
-    activeShader->bind();
-
-    activeShader->generateBuffer(&mesh->VAO, &mesh->VBO, &mesh->EBO, mesh->vertices.data(), mesh->vertices.size(), mesh->index.data(), mesh->index.size());
-    mesh->generated = true;
-    mesh->upToDate = true;
+void RenderQueue::generateBuffer(Mesh* mesh, std::vector<Vertex>& v, std::vector<unsigned int>& i) {
+    activeShader->generateBuffer(&mesh->VAO, &mesh->VBO, &mesh->EBO, v, i);
 }
 
-void RenderQueue::updateBuffer(Mesh* mesh) {
-    activeShader->bind();
-    activeShader->updateBuffer(&mesh->VAO, &mesh->VBO, &mesh->EBO, mesh->vertices.data(), mesh->vertices.size(), mesh->index.data(), mesh->index.size());
-    mesh->upToDate = true;
-}
 
 void RenderQueue::draw(Camera& cam, int width, int height) {
     activeShader->bind();

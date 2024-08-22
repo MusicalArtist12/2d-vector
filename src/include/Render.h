@@ -27,8 +27,7 @@ class RenderQueue {
         std::vector<DrawData> queue;
         
         bool drawWireframe = false;
-        void generateBuffer(Mesh* mesh);
-        void updateBuffer(Mesh* mesh);
+        void generateBuffer(Mesh* mesh, std::vector<Vertex>& v, std::vector<unsigned int>& i);
 
         void draw(Camera& cam, int width, int height);
 };

@@ -9,6 +9,19 @@
 
 #include "Mesh.h"
 
+class BufferMap {
+    public:
+        GLuint* ID;
+        GLenum type;
+        GLenum access;
+
+        void* data;
+
+        BufferMap(GLuint* ID, GLenum type, GLenum access);
+
+        ~BufferMap();
+};
+
 class Shader {
     private:
         unsigned int ID;
@@ -31,9 +44,7 @@ class Shader {
         void drawMesh(GLuint VAO, int size, glm::mat4 model);
         void setView(glm::mat4 view, glm::mat4 projection);
 
-        void generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, Vertex* vertices, int vSize, GLuint* index, int iSize);
-        void updateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, Vertex* vertices, int vSize, GLuint* index, int iSize);
-
+        static void generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, std::vector<Vertex>& v, std::vector<unsigned int>& i);
 };
 
 #endif

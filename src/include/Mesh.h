@@ -30,21 +30,19 @@ struct Vertex {
 };
 
 struct Mesh {
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> index;
-
     unsigned int VAO;
     unsigned int VBO;
     unsigned int EBO;
 
-    bool generated;
-    bool upToDate;
+    const int numVertices;
+    const int numIndices;
+
 
     IndexMode mode = TRIANGLE;
 
     Mesh(std::vector<Vertex>& v, std::vector<unsigned int>& i);
     float radius();
-    glm::vec3 center();
+    glm::vec3 center(Vertex* vertices);
 };
 
 void setColor(Mesh* myMesh, float r, float g, float b, float a);

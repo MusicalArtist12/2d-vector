@@ -243,6 +243,7 @@ void objectSubApp(PhysObject& myObject) {
     if (ImGui::TreeNode("Mesh Data")) {
         ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x, 260), false, ImGuiWindowFlags_HorizontalScrollbar);
 
+/*
         for (int i = 0; i < myObject.myMesh.vertices.size(); i++) {
             ImGui::PushID(&myObject.myMesh.vertices[i]);
             ImGui::DragFloat2("Position", myObject.myMesh.vertices[i].pos);
@@ -256,6 +257,7 @@ void objectSubApp(PhysObject& myObject) {
         if (ImGui::Button("Update Mesh")) {
             myObject.myMesh.upToDate = false;
         }
+*/
     }
 
     ImGui::PopID();

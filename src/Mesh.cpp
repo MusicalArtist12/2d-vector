@@ -1,17 +1,23 @@
 #include "Mesh.h"
+#include "Shader.h"
 
 #include <cmath>
 #include <iostream>
 
-Mesh::Mesh(std::vector<Vertex>& v, std::vector<unsigned int>& i): vertices(v), index(i), generated(false) {}
+Mesh::Mesh(std::vector<Vertex>& v, std::vector<unsigned int>& i): numVertices(v.size()), numIndices(i.size()) {
+    Shader::generateBuffer(&VAO, &VBO, &EBO, v, i);
+}
 
 float Mesh::radius() {
     float radius = 0.0f;
 
+    BufferMap vbo = BufferMap(&VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
+    Vertex* vertices = (Vertex*)vbo.data;
+
     // adjust each point to match the center, then find the distance
-    for (int i = 0; i < vertices.size(); i++) {
-        vertices[i].pos[0] = vertices[i].pos[0] - center().x;
-        vertices[i].pos[1] = vertices[i].pos[1] - center().y;
+    for (int i = 0; i < numVertices; i++) {
+        vertices[i].pos[0] = vertices[i].pos[0] - center(vertices).x;
+        vertices[i].pos[1] = vertices[i].pos[1] - center(vertices).y;
     
         float distance = sqrt(pow(vertices[i].pos[0], 2) + pow((vertices[i].pos[1]), 2));
 
@@ -23,18 +29,18 @@ float Mesh::radius() {
     return radius;
 }
 
-glm::vec3 Mesh::center() {
+glm::vec3 Mesh::center(Vertex* vertices) {
     // find the center via the mean
     float x_mean = 0.0f;
     float y_mean = 0.0f;
 
-    for (int i = 0; i < vertices.size(); i++) {
+    for (int i = 0; i < numVertices; i++) {
         x_mean += vertices[i].pos[0];
         y_mean += vertices[i].pos[1];
     }  
 
-    x_mean = x_mean / vertices.size();
-    y_mean = y_mean / vertices.size();
+    x_mean = x_mean / numVertices;
+    y_mean = y_mean / numVertices;
 
     return glm::vec3(x_mean, y_mean, 0.0f);
 }
@@ -79,12 +85,13 @@ Mesh genPolygon(int numSides) {
 }
 
 void setColor(Mesh* mesh, float r, float g, float b, float a) {
-    for (int i = 0; i < mesh->vertices.size(); i++) {
-        mesh->vertices[i].rgba[0] = r;
-        mesh->vertices[i].rgba[1] = g;
-        mesh->vertices[i].rgba[2] = b;
-        mesh->vertices[i].rgba[3] = a;
-    }
+    BufferMap vbo = BufferMap(&mesh->VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
+    Vertex* vertices = (Vertex*)vbo.data;
 
-    mesh->generated = false;
+    for (int i = 0; i < mesh->numVertices; i++) {
+        vertices[i].rgba[0] = r;
+        vertices[i].rgba[1] = g;
+        vertices[i].rgba[2] = b;
+        vertices[i].rgba[3] = a;
+    }
 }

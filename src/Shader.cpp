@@ -4,14 +4,31 @@
 #include <fstream>
 #include <sstream>
 
+BufferMap::BufferMap(GLuint* ID, GLenum type, GLenum access): ID(ID), type(type), access(access) {
+    glBindBuffer(type, *ID);
+
+    data = glMapBuffer(type, access);
+    std::cout << glGetError() << std::endl;
+    glBindBuffer(type, 0);
+}
+
+BufferMap::~BufferMap() {
+    glBindBuffer(type, *ID);
+    glUnmapBuffer(type);
+    glBindBuffer(type, 0);
+}
+
 void Shader::drawMesh(GLuint VAO, int size, glm::mat4 model) {
     bind();
 
     setUniform4fv("model", model);
 
     glBindVertexArray(VAO);
+    
+    // std::cout << glGetError() << std::endl;
 
     glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, 0);
+
 }
 
 void Shader::setView(glm::mat4 view, glm::mat4 projection) {
@@ -23,7 +40,7 @@ void Shader::setView(glm::mat4 view, glm::mat4 projection) {
     unbind();
 }
 
-void Shader::generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, Vertex* vertices, int vSize, GLuint* index, int iSize) {
+void Shader::generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, std::vector<Vertex>& v, std::vector<unsigned int>& i) {
     glGenVertexArrays(1, VAO); 
 
     glBindVertexArray(*VAO);
@@ -33,11 +50,11 @@ void Shader::generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, Vertex* verti
 
     // VBO
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-    glBufferData(GL_ARRAY_BUFFER, (vSize * sizeof(Vertex)), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (v.size() * sizeof(Vertex)), v.data(), GL_STATIC_DRAW);
     // type of buffer, size of buffer we want to pass, data, how its managed
     
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (iSize * sizeof(GLuint)), index, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i.size() * sizeof(GLuint)), i.data(), GL_STATIC_DRAW);
 
     // Position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
@@ -50,19 +67,6 @@ void Shader::generateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, Vertex* verti
     glBindVertexArray(0); 
 }
 
-void Shader::updateBuffer(GLuint* VAO, GLuint* VBO, GLuint* EBO, Vertex* vertices, int vSize, GLuint* index, int iSize) {
-    glBindVertexArray(*VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-
-    glBufferSubData(GL_ARRAY_BUFFER, 0, (vSize * sizeof(Vertex)), nullptr);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, (vSize * sizeof(Vertex)), vertices);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, *EBO);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, (iSize * sizeof(GLuint)), nullptr);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, (iSize * sizeof(GLuint)), index);
-    glBindVertexArray(0); 
-}
 
 void Shader::bind() {
     glEnable(GL_DEPTH_TEST);
