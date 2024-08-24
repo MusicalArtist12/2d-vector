@@ -37,7 +37,10 @@ class PhysObject {
         Mesh myMesh;
 
         glm::vec3 pos;
+        glm::vec3 scale;
+
         glm::vec3 vel;
+        
         
         float mass;
 
@@ -57,7 +60,7 @@ class PhysObject {
         inline float kineticEnergy() { return 0.5 * mass * glm::pow(glm::length(vel), 2); }
         
         // used to determine if an object is close enough that it *could* hit
-        inline double radius() { return myMesh.radius(); }
+        inline double radius() { return myMesh.radius(scale); }
 
         std::vector<Polygon> closestPolygons(PhysObject& objB);
         void transferEnergy(PhysObject& objB, float deltaTime);

@@ -65,10 +65,10 @@ int main() {
     io.Fonts->AddFontFromFileTTF("data/fonts/SourceCodePro-Regular.otf", 18);
 
     std::vector<Vertex> wallVertices = {
-        Vertex(-0.25f, -1, 1, 1, 1, 1), 
-        Vertex(-0.25f, 1, 1, 1, 1, 1), 
-        Vertex(0.25f, -1, 1, 1, 1, 1), 
-        Vertex(0.25f, 1, 1, 1, 1, 1), 
+        Vertex(1, -1, 1, 1, 1, 1), 
+        Vertex(1, 1, 1, 1, 1, 1), 
+        Vertex(-1, -1, 1, 1, 1, 1), 
+        Vertex(-1, 1, 1, 1, 1, 1), 
     };
 
     std::vector<unsigned int> wallIndices = {
@@ -85,6 +85,9 @@ int main() {
 
     world.entry("left wall").isStatic = true;
     world.entry("right wall").isStatic = true;
+    world.entry("left wall").scale = glm::vec3(0.25, 1, 1);
+    world.entry("right wall").scale = glm::vec3(0.25, 1, 1);
+    world.entry("pong ball").scale = glm::vec3(0.5);
 
     world.entry("left wall").addKeyCallback(
         "up",

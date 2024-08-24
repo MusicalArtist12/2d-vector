@@ -41,7 +41,7 @@ struct Mesh {
     IndexMode mode = TRIANGLE;
 
     Mesh(std::vector<Vertex>& v, std::vector<unsigned int>& i);
-    float radius();
+    float radius(glm::vec3 scale = glm::vec3(1.0f));
     glm::vec3 center(Vertex* vertices);
 };
 

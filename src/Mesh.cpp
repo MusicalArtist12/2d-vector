@@ -8,7 +8,7 @@ Mesh::Mesh(std::vector<Vertex>& v, std::vector<unsigned int>& i): numVertices(v.
     Shader::generateBuffer(&VAO, &VBO, &EBO, v, i);
 }
 
-float Mesh::radius() {
+float Mesh::radius(glm::vec3 scale) {
     float radius = 0.0f;
 
     BufferMap vbo = BufferMap(&VAO, &VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
@@ -16,10 +16,10 @@ float Mesh::radius() {
 
     // adjust each point to match the center, then find the distance
     for (int i = 0; i < numVertices; i++) {
-        vertices[i].pos[0] = vertices[i].pos[0] - center(vertices).x;
-        vertices[i].pos[1] = vertices[i].pos[1] - center(vertices).y;
+        vertices[i].pos.x = vertices[i].pos.x - center(vertices).x;
+        vertices[i].pos.y = vertices[i].pos.y - center(vertices).y;
     
-        float distance = sqrt(pow(vertices[i].pos[0], 2) + pow((vertices[i].pos[1]), 2));
+        float distance = sqrt(pow(vertices[i].pos.x * scale.x, 2) + pow(vertices[i].pos.y * scale.y, 2));
 
         if (radius < distance) {
             radius = distance;
