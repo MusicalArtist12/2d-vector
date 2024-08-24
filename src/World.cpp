@@ -6,6 +6,8 @@
 
 extern World world;
 
+const double COLLISION_VARIANCE = 0.001;
+
 float getVecAngle(glm::vec3 vector) {
     if (glm::length(vector) == 0.0) {
         return 0.0f;
@@ -100,9 +102,9 @@ glm::vec3 getTriangleAngles(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
     return glm::vec3(angleA, angleB, angleC);
 }
 
-bool PhysObject::isColliding(PhysObject& objB) {
+std::vector<Polygon> PhysObject::closestPolygons(PhysObject& objB) {
     if(ID == objB.ID || isGhost) { 
-        return false;
+        return {};
     }
 
     double distance = glm::distance(pos, objB.pos);
@@ -110,22 +112,16 @@ bool PhysObject::isColliding(PhysObject& objB) {
     const float radiusA = radius();
     const float radiusB = objB.radius();
 
+    std::vector<Polygon> relevantPolygons = {};
+
     if (distance >= radiusA + radiusB) {
-        return false;
+        return relevantPolygons;
     }
 
     if (myMesh.mode != TRIANGLE) {
         std::cout << "Collision detection is only accurate for meshes using triangle indices" << std::endl;
-        return true;
+        return relevantPolygons;
     }
-
-    struct Polygon {
-        Vertex& a;
-        Vertex& b;
-        Vertex& c;
-    };
-
-    std::vector<Polygon> relevantPolygons;
 
     BufferMap vbo = BufferMap(&myMesh.VAO, &myMesh.VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
     BufferMap ebo = BufferMap(&myMesh.VAO, &myMesh.EBO, GL_ELEMENT_ARRAY_BUFFER, GL_READ_WRITE);
@@ -137,44 +133,45 @@ bool PhysObject::isColliding(PhysObject& objB) {
         Vertex& b = vertices[indices[i + 1]];
         Vertex& c = vertices[indices[i + 2]];
 
-        // relative to object A
-        glm::vec3 aPos = glm::make_vec3(a.pos);
-        glm::vec3 bPos = glm::make_vec3(b.pos);
-        glm::vec3 cPos = glm::make_vec3(c.pos);
+        glm::vec3 aPos = a.pos;
+        glm::vec3 bPos = b.pos;
+        glm::vec3 cPos = c.pos;
 
-        double distanceA = 0.95 * glm::distance(aPos, objB.pos - pos);
-        double distanceB = 0.95 * glm::distance(bPos, objB.pos - pos);   
-        double distanceC = 0.95 * glm::distance(cPos, objB.pos - pos);   
+        double distanceA = glm::distance(aPos, objB.pos - pos);
+        double distanceB = glm::distance(bPos, objB.pos - pos);   
+        double distanceC = glm::distance(cPos, objB.pos - pos);   
 
-        
         // vertex is possibly making contact with the other object
-        if (distanceA <= radiusB || distanceB <= radiusB || distanceC <= radiusB) {
+        if (distanceA + COLLISION_VARIANCE <= radiusB || distanceB + COLLISION_VARIANCE<= radiusB || distanceC + COLLISION_VARIANCE <= radiusB) {
             relevantPolygons.push_back({a, b, c});
             continue;
         }
-        
+
+        if (distanceA - COLLISION_VARIANCE <= radiusB || distanceB - COLLISION_VARIANCE<= radiusB || distanceC - COLLISION_VARIANCE <= radiusB) {
+            relevantPolygons.push_back({a, b, c});
+            continue;
+        }     
 
         glm::vec3 anglesA = getTriangleAngles(aPos, bPos, objB.pos - pos);
         glm::vec3 anglesB = getTriangleAngles(bPos, cPos, objB.pos - pos);
         glm::vec3 anglesC = getTriangleAngles(cPos, aPos, objB.pos - pos);
 
-        std::cout << "anglesA " << glm::degrees(anglesA[0]) << ' ' << glm::degrees(anglesA[1]) << ' ' << glm::degrees(anglesA[2]) << '\n';
-        std::cout << "anglesB " << glm::degrees(anglesB[0]) << ' ' << glm::degrees(anglesB[1]) << ' ' << glm::degrees(anglesB[2]) << '\n';
-        std::cout << "anglesC " << glm::degrees(anglesC[0]) << ' ' << glm::degrees(anglesC[1]) << ' ' << glm::degrees(anglesC[2]) << '\n';
+        //std::cout << "anglesA " << glm::degrees(anglesA[0]) << ' ' << glm::degrees(anglesA[1]) << ' ' << glm::degrees(anglesA[2]) << '\n';
+        //std::cout << "anglesB " << glm::degrees(anglesB[0]) << ' ' << glm::degrees(anglesB[1]) << ' ' << glm::degrees(anglesB[2]) << '\n';
+        //std::cout << "anglesC " << glm::degrees(anglesC[0]) << ' ' << glm::degrees(anglesC[1]) << ' ' << glm::degrees(anglesC[2]) << '\n';
 
         if (anglesA[0] <= glm::radians(90.0) && anglesA[1] <= glm::radians(90.0) && anglesA[2] <= glm::radians(90.0)) {
-            double edgeDistance = glm::abs(0.95 * distanceA * glm::sin(anglesA[0]));
+            double edgeDistance = glm::abs(distanceA * glm::sin(anglesA[0]));
 
-            if (edgeDistance <= radiusB) {
+            if (edgeDistance + COLLISION_VARIANCE <= radiusB || edgeDistance - COLLISION_VARIANCE <= radiusB ) {
                 relevantPolygons.push_back({a, b, c});
                 continue;
             }
         }
-        
         if (anglesB[0] <= glm::radians(90.0) && anglesB[1] <= glm::radians(90.0) && anglesB[2] <= glm::radians(90.0)) {
             double edgeDistance = glm::abs(0.95 * distanceB * glm::sin(anglesB[0]));
 
-            if (edgeDistance <= radiusB) {
+            if (edgeDistance + COLLISION_VARIANCE <= radiusB || edgeDistance - COLLISION_VARIANCE <= radiusB ) {
                 relevantPolygons.push_back({a, b, c});
                 continue;
             }
@@ -182,7 +179,7 @@ bool PhysObject::isColliding(PhysObject& objB) {
         if (anglesC[0] <= glm::radians(90.0) && anglesC[1] <= glm::radians(90.0) && anglesC[2] <= glm::radians(90.0)) {
             double edgeDistance = glm::abs(0.95 * distanceC * glm::sin(anglesC[0]));
  
-            if (edgeDistance <= radiusB) {
+            if (edgeDistance + COLLISION_VARIANCE <= radiusB || edgeDistance - COLLISION_VARIANCE <= radiusB ) {
                 relevantPolygons.push_back({a, b, c});
                 continue;
             }
@@ -190,41 +187,7 @@ bool PhysObject::isColliding(PhysObject& objB) {
         }
     }
 
-    std::cout << "number of relevant polygons: " << relevantPolygons.size() << '\n';
-    
-    if (ID == "left wall" && relevantPolygons.size() > 0) {
-        std::cout << "\n\n\n";
-
-        world.isPaused = true;
-    }
-
-
-    if (relevantPolygons.size() == 0) {
-
-        return false;
-    }
-
-    for (int i = 0; i < relevantPolygons.size(); i++) {
-        // std::cout << relevantPolygons[i].a.pos[0] << ' ' << relevantPolygons[i].a.pos[1] << ' ' <<  relevantPolygons[i].a.pos[2] << '\n';
-        // std::cout << relevantPolygons[i].b.pos[0] << ' ' << relevantPolygons[i].b.pos[1] << ' ' <<  relevantPolygons[i].b.pos[2] << '\n';
-        // std::cout << relevantPolygons[i].c.pos[0] << ' ' << relevantPolygons[i].c.pos[1] << ' ' <<  relevantPolygons[i].c.pos[2] << "\n\n";
-
-        relevantPolygons[i].a.rgba[0] = 1.0;
-        relevantPolygons[i].a.rgba[1] = 0.0;
-        relevantPolygons[i].a.rgba[2] = 0.0;
-
-        relevantPolygons[i].b.rgba[0] = 1.0;
-        relevantPolygons[i].b.rgba[1] = 0.0;
-        relevantPolygons[i].b.rgba[2] = 0.0;
-
-        relevantPolygons[i].c.rgba[0] = 1.0;
-        relevantPolygons[i].c.rgba[1] = 0.0;
-        relevantPolygons[i].c.rgba[2] = 0.0;
-
-    }
-
-
-    return true;
+    return relevantPolygons;
 }
 
 void PhysObject::resolveCollision(PhysObject& objB, float deltaTime) {
@@ -307,28 +270,125 @@ void World::updateMovement(float deltaTime) {
     }
 }
 
-void World::updateCollisions(PhysObject& obj, float deltaTime) {
-    for (int j = 0; j < objectTable.size(); j++) {
-        PhysObject& iObj = objectTable.getRef(j);
+void World::updateCollisions(PhysObject& objA, float deltaTime) {
+    for (int i = 0; i < objectTable.size(); i++) {
+        PhysObject& objB = objectTable.getRef(i);
 
-        bool testA = obj.isColliding(iObj);
-        bool testB = iObj.isColliding(obj);
+        std::vector<Polygon> aPolygons = objA.closestPolygons(objB);
+        std::vector<Polygon> bPolygons = objB.closestPolygons(objA);
 
-        if (testA && testB) {
-            if (!obj.forceVectors.hasEntry(iObj.ID) || !iObj.forceVectors.hasEntry(obj.ID)){
-                obj.resolveCollision(iObj, deltaTime);
-                iObj.resolveCollision(obj, deltaTime);
-            }
-        } 
-        else {
-            if (obj.forceVectors.hasEntry(iObj.ID)) {
-                obj.forceVectors.remove(iObj.ID);
-            }
+        bool isColliding = false;
 
-            if (iObj.forceVectors.hasEntry(obj.ID)) {
-                iObj.forceVectors.remove(obj.ID);
+        for (int a = 0; a < aPolygons.size(); a++) {
+            std::vector<glm::vec3> polyA = {aPolygons[a].a.pos + objA.pos, aPolygons[a].b.pos + objA.pos, aPolygons[a].c.pos + objA.pos};
+
+            for (int b = 0; b < bPolygons.size(); b++) {
+                // what is the shortest possible line between each triangle?
+                /*
+                    cases:
+                        - Edge - Edge (which in theory should just proc on edge-vertex )
+                        - Edge - Vertex
+                        - Vertex - Vertex 
+                */
+               
+                std::vector<glm::vec3> polyB = {bPolygons[b].b.pos + objB.pos, aPolygons[b].b.pos + objB.pos, aPolygons[b].c.pos + objB.pos};
+
+                // Vertex - Vertex
+                for (int j = 0; j < polyA.size(); j++) {
+                    for (int k = 0; k < polyB.size(); k++) {
+                        double distance = glm::distance(polyA[j], polyB[k]);
+                        if (distance < COLLISION_VARIANCE) {
+                            isColliding = true;
+                            break;
+                        }
+                    }
+
+                    if (isColliding == true) {
+                        break;
+                    }
+                }
+                
+                // Vertex (on A) - Edge 
+                for (int j = 0; j < polyA.size(); j++) {
+                    for (int k = 0; k < polyB.size(); k++) {
+                        glm::vec3 angles = getTriangleAngles(polyB[k], polyB[(k + 1) % polyB.size()], polyA[j]);
+                        double hyp = glm::distance(polyA[j], polyB[k]);
+                        double distance = hyp * glm::sin(angles[0]);
+
+                        if (distance <= COLLISION_VARIANCE) {
+                            isColliding = true;
+                            break;
+                        }
+                    }
+
+                    std::cout << '\n';
+
+                    if (isColliding == true) {
+                        break;
+                    }
+
+                    
+                }
+
+                if (isColliding == true) {
+                    break;
+                }
+
+                // Vertex (on B) - Edge 
+                for (int j = 0; j < polyB.size(); j++) {
+
+                    for (int k = 0; k < polyA.size(); k++) {
+                        glm::vec3 angles = getTriangleAngles(polyA[k], polyA[(k + 1) % polyA.size()], polyB[j]);
+                        double hyp = glm::distance(polyA[j], polyB[k]);
+                        double distance = hyp * glm::sin(angles[0]);
+
+                        if (distance <= COLLISION_VARIANCE) {
+                            isColliding = true;
+                            break;
+                        }
+                    }
+
+                    std::cout << '\n';
+
+                    if (isColliding == true) {
+                        break;
+                    }         
+                }
+
+                if (isColliding == true) {
+                    break;
+                }
             }
         }
+
+
+        if (isColliding) {
+            // std::cout << "objA: " << objA.ID << " objB: " << objB.ID << std::endl;
+
+            if (!objA.forceVectors.hasEntry(objB.ID) || !objB.forceVectors.hasEntry(objA.ID)){
+                // std::cout << "adding forces" << std::endl;
+
+                objA.resolveCollision(objB, deltaTime);
+                objB.resolveCollision(objA, deltaTime);
+            }
+
+        } 
+        else {
+
+            if (objA.forceVectors.hasEntry(objB.ID)) {
+                objA.forceVectors.remove(objB.ID);
+                // std::cout << "removing A forces" << std::endl;
+
+            }
+
+            if (objB.forceVectors.hasEntry(objA.ID)) {
+                // std::cout << "removing B forces" << std::endl;
+
+                objB.forceVectors.remove(objA.ID);
+            }
+        }
+
+        
     }  
 }
 

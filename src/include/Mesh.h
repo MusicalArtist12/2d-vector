@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+
 #include <vector>
 
 enum IndexMode {
@@ -12,8 +13,8 @@ enum IndexMode {
 };
 
 struct Vertex {
-    float pos[3];
-    float rgba[4];
+    glm::vec3 pos;
+    glm::vec4 rgba;
 
     Vertex() {}
 

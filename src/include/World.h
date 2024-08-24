@@ -24,6 +24,13 @@ struct KeyCallback {
     std::string name;
 };
 
+struct Polygon {
+    Vertex a;
+    Vertex b;
+    Vertex c;
+};
+
+
 class PhysObject {
     public: 
         const std::string ID;
@@ -52,7 +59,7 @@ class PhysObject {
         // used to determine if an object is close enough that it *could* hit
         inline double radius() { return myMesh.radius(); }
 
-        bool isColliding(PhysObject& objB);
+        std::vector<Polygon> closestPolygons(PhysObject& objB);
         void transferEnergy(PhysObject& objB, float deltaTime);
 
         void resolveCollision(PhysObject& objB, float deltaTime);

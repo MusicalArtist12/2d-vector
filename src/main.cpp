@@ -76,13 +76,12 @@ int main() {
         1, 2, 3
     };
 
-    world.add(PhysObject(Mesh(wallVertices, wallIndices), "pong ball"));
+    world.add(PhysObject(genPolygon(32), "pong ball"));
     world.add(PhysObject(Mesh(wallVertices, wallIndices), "left wall")).pos = glm::vec3(-10, 0, 0);
     world.add(PhysObject(Mesh(wallVertices, wallIndices), "right wall")).pos = glm::vec3(10, 0, 0);
     
     // world.add(PhysObject(Mesh(genPolygon(32)), "left wall")).pos = glm::vec3(-10, 0, 0);
     // world.add(PhysObject(Mesh(genPolygon(32)), "right wall")).pos = glm::vec3(10, 0, 0);
-    
 
     world.entry("left wall").isStatic = true;
     world.entry("right wall").isStatic = true;
