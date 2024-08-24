@@ -168,11 +168,17 @@ std::vector<Polygon> PhysObject::closestPolygons(PhysObject& objB) {
         };
 
         for (int j = 0; j < 3; j++) {
-            double edgeDistance = glm::abs(distances[j] * glm::sin(angles[j][0]));
+            double edgeDistanceA = glm::abs(distances[j] * glm::sin(angles[j][0]));
+            double edgeDistanceB = glm::abs(distances[(j + 1) % 3] * glm::sin(angles[j][1]));
 
-            std::cout << edgeDistance << std::endl;
+            std::cout << edgeDistanceB << ' ' << edgeDistanceB << std::endl;
 
-            if (edgeDistance + COLLISION_VARIANCE <= radiusB || edgeDistance - COLLISION_VARIANCE <= radiusB ) {
+            if (angles[j][0] > glm::radians(90.0) || angles[j][1] > glm::radians(90.0)) {
+                continue;
+            }
+
+
+            if (edgeDistanceA + COLLISION_VARIANCE <= radiusB || edgeDistanceA - COLLISION_VARIANCE <= radiusB ) {
                 relevantPolygons.push_back({a, b, c});
                 break;
             }
