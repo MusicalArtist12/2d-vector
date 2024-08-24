@@ -47,13 +47,13 @@ void moveDown(PhysObject& object, KeyCallback* self) {
 }
 
 void collisionCallback(PhysObject* self, PhysObject& objB, float deltaTime) {
-    glm::vec3 tempvel = self->vel;
+    // glm::vec3 tempvel = self->vel;
 
-    self->vel = glm::vec3(0.0);
+    // self->vel = glm::vec3(0.0);
 
     self->transferEnergy(objB, deltaTime);
 
-    self->vel = tempvel;
+    // self->vel = tempvel;
 }
 
 int main() { 
@@ -76,10 +76,14 @@ int main() {
         1, 2, 3
     };
 
-    world.add(PhysObject(Mesh(genPolygon(50)), "pong ball"));
+    world.add(PhysObject(Mesh(wallVertices, wallIndices), "pong ball"));
     world.add(PhysObject(Mesh(wallVertices, wallIndices), "left wall")).pos = glm::vec3(-10, 0, 0);
     world.add(PhysObject(Mesh(wallVertices, wallIndices), "right wall")).pos = glm::vec3(10, 0, 0);
     
+    // world.add(PhysObject(Mesh(genPolygon(32)), "left wall")).pos = glm::vec3(-10, 0, 0);
+    // world.add(PhysObject(Mesh(genPolygon(32)), "right wall")).pos = glm::vec3(10, 0, 0);
+    
+
     world.entry("left wall").isStatic = true;
     world.entry("right wall").isStatic = true;
 

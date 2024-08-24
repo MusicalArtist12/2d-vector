@@ -37,7 +37,6 @@ struct Mesh {
     const int numVertices;
     const int numIndices;
 
-
     IndexMode mode = TRIANGLE;
 
     Mesh(std::vector<Vertex>& v, std::vector<unsigned int>& i);

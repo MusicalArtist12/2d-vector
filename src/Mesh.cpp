@@ -11,7 +11,7 @@ Mesh::Mesh(std::vector<Vertex>& v, std::vector<unsigned int>& i): numVertices(v.
 float Mesh::radius() {
     float radius = 0.0f;
 
-    BufferMap vbo = BufferMap(&VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
+    BufferMap vbo = BufferMap(&VAO, &VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
     Vertex* vertices = (Vertex*)vbo.data;
 
     // adjust each point to match the center, then find the distance
@@ -85,7 +85,7 @@ Mesh genPolygon(int numSides) {
 }
 
 void setColor(Mesh* mesh, float r, float g, float b, float a) {
-    BufferMap vbo = BufferMap(&mesh->VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
+    BufferMap vbo = BufferMap(&mesh->VAO, &mesh->VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
     Vertex* vertices = (Vertex*)vbo.data;
 
     for (int i = 0; i < mesh->numVertices; i++) {

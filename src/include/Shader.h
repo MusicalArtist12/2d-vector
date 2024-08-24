@@ -17,7 +17,7 @@ class BufferMap {
 
         void* data;
 
-        BufferMap(GLuint* ID, GLenum type, GLenum access);
+        BufferMap(GLuint* VAO, GLuint* ID, GLenum type, GLenum access);
 
         ~BufferMap();
 };

@@ -1,6 +1,7 @@
 #include "World.h"
 #include "Shader.h"
-
+#include "glm/trigonometric.hpp"
+#include <glm/gtx/vector_angle.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 extern World world;
@@ -64,16 +65,52 @@ void PhysObject::transferEnergy(PhysObject& objB, float deltaTime) {
 
 }
 
+// assumes all points have the same origin
+glm::vec3 getTriangleAngles(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
+    // angle a
+    glm::vec3 p = b - a;
+    glm::vec3 q = c - a;
+
+    double angleA = glm::abs(glm::atan(p.y, p.x) - glm::atan(q.y, q.x));
+
+    if (angleA > glm::radians(180.0)) {
+        angleA = glm::radians(360.0) - angleA; 
+    }
+
+    // angle b 
+    p = a - b;
+    q = c - b;
+
+    double angleB = glm::abs(glm::atan(p.y, p.x) - glm::atan(q.y, q.x));
+
+    if (angleB > glm::radians(180.0)) {
+        angleB = glm::radians(360.0) - angleB;
+    }
+
+    // angle c 
+    p = a - c;
+    q = b - c;
+
+    double angleC = glm::abs(glm::atan(p.y, p.x) - glm::atan(q.y, q.x));
+
+    if (angleC > glm::radians(180.0)) {
+        angleC = glm::radians(360.0) - angleC;
+    }
+
+    return glm::vec3(angleA, angleB, angleC);
+}
+
 bool PhysObject::isColliding(PhysObject& objB) {
     if(ID == objB.ID || isGhost) { 
         return false;
     }
 
     double distance = glm::distance(pos, objB.pos);
-    glm::vec3 direction = glm::normalize(objB.pos - pos);
-    float direction_angle = glm::atan(direction[1]/direction[0]);
 
-    if (distance >= radius() + objB.radius()) {
+    const float radiusA = radius();
+    const float radiusB = objB.radius();
+
+    if (distance >= radiusA + radiusB) {
         return false;
     }
 
@@ -81,20 +118,6 @@ bool PhysObject::isColliding(PhysObject& objB) {
         std::cout << "Collision detection is only accurate for meshes using triangle indices" << std::endl;
         return true;
     }
-
-    // get all verticies within a certain slice of the object "radius". the closer the other object is, the wider the radius needs to be 
-    // angle can be based on the other object's radius (as the length of a triangle)
-    // so we have distance and height. and we know its an isolese triangle.
-    // which is just two right angle triangles
-    // which means tan(myAngle) = (other_radius/2) / distance
-    // which means myAngle = arctan(other_radius / (distance * 2))
-
-
-    // we only care about polygons that are the distance's direction += angle
-    float angle = glm::atan(objB.radius() / (distance * 2));
-
-    // to get the relevant triangles, we need to iterate over myMesh's indices (grouped by 3)
-    // we'll say it matters if at least one point is inside the angle.
 
     struct Polygon {
         Vertex& a;
@@ -104,32 +127,83 @@ bool PhysObject::isColliding(PhysObject& objB) {
 
     std::vector<Polygon> relevantPolygons;
 
-    BufferMap vbo = BufferMap(&myMesh.VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
+    BufferMap vbo = BufferMap(&myMesh.VAO, &myMesh.VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
+    BufferMap ebo = BufferMap(&myMesh.VAO, &myMesh.EBO, GL_ELEMENT_ARRAY_BUFFER, GL_READ_WRITE);
     Vertex* vertices = (Vertex*)vbo.data;
+    unsigned int* indices = (unsigned int*)ebo.data;
 
     for (int i = 0; i < myMesh.numIndices; i+= 3) {
+        Vertex& a = vertices[indices[i]];
+        Vertex& b = vertices[indices[i + 1]];
+        Vertex& c = vertices[indices[i + 2]];
+
+        // relative to object A
+        glm::vec3 aPos = glm::make_vec3(a.pos);
+        glm::vec3 bPos = glm::make_vec3(b.pos);
+        glm::vec3 cPos = glm::make_vec3(c.pos);
+
+        double distanceA = 0.95 * glm::distance(aPos, objB.pos - pos);
+        double distanceB = 0.95 * glm::distance(bPos, objB.pos - pos);   
+        double distanceC = 0.95 * glm::distance(cPos, objB.pos - pos);   
+
         
-        Vertex& a = vertices[i];
-        Vertex& b = vertices[i + 1];
-        Vertex& c = vertices[i + 2];
-
-        // if any of these vertices are within direction rotated += angle, then the entire polygon matters.
-
-        float angleA = glm::atan(a.pos[1], a.pos[0]);
-
-        float angleB = glm::atan(b.pos[1], b.pos[0]);
-        float angleC = glm::atan(c.pos[1], c.pos[0]);
-
-        if ((direction_angle - angle <= angleA && direction_angle + angle >= angleA) ||
-            (direction_angle - angle <= angleB && direction_angle + angle >= angleB) ||
-            (direction_angle - angle <= angleC && direction_angle + angle >= angleC)) {
+        // vertex is possibly making contact with the other object
+        if (distanceA <= radiusB || distanceB <= radiusB || distanceC <= radiusB) {
             relevantPolygons.push_back({a, b, c});
-        } 
+            continue;
+        }
+        
 
+        glm::vec3 anglesA = getTriangleAngles(aPos, bPos, objB.pos - pos);
+        glm::vec3 anglesB = getTriangleAngles(bPos, cPos, objB.pos - pos);
+        glm::vec3 anglesC = getTriangleAngles(cPos, aPos, objB.pos - pos);
+
+        std::cout << "anglesA " << glm::degrees(anglesA[0]) << ' ' << glm::degrees(anglesA[1]) << ' ' << glm::degrees(anglesA[2]) << '\n';
+        std::cout << "anglesB " << glm::degrees(anglesB[0]) << ' ' << glm::degrees(anglesB[1]) << ' ' << glm::degrees(anglesB[2]) << '\n';
+        std::cout << "anglesC " << glm::degrees(anglesC[0]) << ' ' << glm::degrees(anglesC[1]) << ' ' << glm::degrees(anglesC[2]) << '\n';
+
+        if (anglesA[0] <= glm::radians(90.0) && anglesA[1] <= glm::radians(90.0) && anglesA[2] <= glm::radians(90.0)) {
+            double edgeDistance = glm::abs(0.95 * distanceA * glm::sin(anglesA[0]));
+
+            if (edgeDistance <= radiusB) {
+                relevantPolygons.push_back({a, b, c});
+                continue;
+            }
+        }
+        
+        if (anglesB[0] <= glm::radians(90.0) && anglesB[1] <= glm::radians(90.0) && anglesB[2] <= glm::radians(90.0)) {
+            double edgeDistance = glm::abs(0.95 * distanceB * glm::sin(anglesB[0]));
+
+            if (edgeDistance <= radiusB) {
+                relevantPolygons.push_back({a, b, c});
+                continue;
+            }
+        }
+        if (anglesC[0] <= glm::radians(90.0) && anglesC[1] <= glm::radians(90.0) && anglesC[2] <= glm::radians(90.0)) {
+            double edgeDistance = glm::abs(0.95 * distanceC * glm::sin(anglesC[0]));
+ 
+            if (edgeDistance <= radiusB) {
+                relevantPolygons.push_back({a, b, c});
+                continue;
+            }
+
+        }
     }
 
-    // std::cout << "angle: " << angle << " polygon ID: " << ID << "\n";
+    std::cout << "number of relevant polygons: " << relevantPolygons.size() << '\n';
     
+    if (ID == "left wall" && relevantPolygons.size() > 0) {
+        std::cout << "\n\n\n";
+
+        world.isPaused = true;
+    }
+
+
+    if (relevantPolygons.size() == 0) {
+
+        return false;
+    }
+
     for (int i = 0; i < relevantPolygons.size(); i++) {
         // std::cout << relevantPolygons[i].a.pos[0] << ' ' << relevantPolygons[i].a.pos[1] << ' ' <<  relevantPolygons[i].a.pos[2] << '\n';
         // std::cout << relevantPolygons[i].b.pos[0] << ' ' << relevantPolygons[i].b.pos[1] << ' ' <<  relevantPolygons[i].b.pos[2] << '\n';
@@ -237,7 +311,10 @@ void World::updateCollisions(PhysObject& obj, float deltaTime) {
     for (int j = 0; j < objectTable.size(); j++) {
         PhysObject& iObj = objectTable.getRef(j);
 
-        if (obj.isColliding(iObj) && iObj.isColliding(obj)) {
+        bool testA = obj.isColliding(iObj);
+        bool testB = iObj.isColliding(obj);
+
+        if (testA && testB) {
             if (!obj.forceVectors.hasEntry(iObj.ID) || !iObj.forceVectors.hasEntry(obj.ID)){
                 obj.resolveCollision(iObj, deltaTime);
                 iObj.resolveCollision(obj, deltaTime);

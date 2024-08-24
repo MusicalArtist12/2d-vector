@@ -4,18 +4,19 @@
 #include <fstream>
 #include <sstream>
 
-BufferMap::BufferMap(GLuint* ID, GLenum type, GLenum access): ID(ID), type(type), access(access) {
+BufferMap::BufferMap(GLuint* VAO, GLuint* ID, GLenum type, GLenum access): ID(ID), type(type), access(access) {
+    glBindVertexArray(*VAO);
     glBindBuffer(type, *ID);
 
     data = glMapBuffer(type, access);
-    std::cout << glGetError() << std::endl;
-    glBindBuffer(type, 0);
+    // glBindBuffer(type, 0);
 }
 
 BufferMap::~BufferMap() {
     glBindBuffer(type, *ID);
     glUnmapBuffer(type);
-    glBindBuffer(type, 0);
+    // glBindBuffer(type, 0);
+    data = nullptr;
 }
 
 void Shader::drawMesh(GLuint VAO, int size, glm::mat4 model) {

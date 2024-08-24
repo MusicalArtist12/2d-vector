@@ -50,7 +50,7 @@ class PhysObject {
         inline float kineticEnergy() { return 0.5 * mass * glm::pow(glm::length(vel), 2); }
         
         // used to determine if an object is close enough that it *could* hit
-        inline float radius() { return myMesh.radius(); }
+        inline double radius() { return myMesh.radius(); }
 
         bool isColliding(PhysObject& objB);
         void transferEnergy(PhysObject& objB, float deltaTime);
