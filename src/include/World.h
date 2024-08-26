@@ -38,9 +38,11 @@ class PhysObject {
 
         glm::vec3 pos;
         glm::vec3 scale;
+        
+        // radians
+        float angle; 
 
         glm::vec3 vel;
-        
         
         float mass;
 
@@ -59,15 +61,21 @@ class PhysObject {
         inline glm::vec3 momentum() { return isStatic ? glm::vec3(0.0f) : mass * vel; }
         inline float kineticEnergy() { return 0.5 * mass * glm::pow(glm::length(vel), 2); }
         
+        inline void resetForces() {
+            for (int i = 0; i < forceVectors.size(); i++) {
+                forceVectors.remove(forceVectors.getID(i));
+            }
+        }
+
         // used to determine if an object is close enough that it *could* hit
         inline double radius() { return myMesh.radius(scale); }
 
         std::vector<Polygon> closestPolygons(PhysObject& objB);
-        void transferEnergy(PhysObject& objB, float deltaTime);
+        void transferEnergy(glm::vec3 collisionPoint, PhysObject& objB,  float deltaTime);
 
-        void resolveCollision(PhysObject& objB, float deltaTime);
+        void resolveCollision(PhysObject& objB, glm::vec3 collisionPoint, float deltaTime);
         
-        void (*collisionCallback)(PhysObject* self, PhysObject& objB, float deltaTime);
+        void (*collisionCallback)(PhysObject* self, PhysObject& objB, glm::vec3 collisionPoint, float deltaTime);
 
 
         void addKeyCallback(std::string name, int key, int state, void (*callback)(PhysObject&, KeyCallback* self));

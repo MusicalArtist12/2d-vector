@@ -25,7 +25,7 @@ float getVecAngle(glm::vec3 vector) {
 glm::mat4 PhysObject::modelMatrix() {
     glm::mat4 model = glm::mat4(1.0f);
 
-    model = glm::translate(glm::mat4(1.0f), pos) * glm::scale(glm::mat4(1.0f), scale) * model;
+    model = glm::translate(glm::mat4(1.0f), pos) * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0, 0.0, 1.0)) * glm::scale(glm::mat4(1.0f), scale) * model;
 
     return model;
 }
@@ -49,23 +49,19 @@ glm::vec3 PhysObject::forceSum() {
     return forces;
 }
 
-// still needs to be updated with the better collision model
-void PhysObject::transferEnergy(PhysObject& objB, float deltaTime) {    
-    glm::vec3& forceA = forceVectors.add(objB.ID, glm::vec3(0.0f));
-
-    glm::vec3 AB = objB.pos - pos;
-
-    float angle1 = getVecAngle(AB);
-    float angleAp = getVecAngle(momentum()) - angle1;
-    float angleBp = getVecAngle(objB.momentum()) - angle1;
-    float angleAf = getVecAngle(forceSum()) - angle1;
-
-    glm::vec3 f_effA = glm::normalize(AB) * glm::length((forceSum())) * glm::cos(angleAf);
-    glm::vec3 p_effB = glm::normalize(AB) * glm::length(objB.momentum()) * glm::cos(angleBp);
-    glm::vec3 p_effA = glm::normalize(AB) * glm::length(momentum()) * glm::cos(angleAp);
-
-    forceA = (p_effB - p_effA)/deltaTime - f_effA;
-
+// collision point: the point of impact on the current object
+void PhysObject::transferEnergy(glm::vec3 collisionPoint, PhysObject& objB,  float deltaTime) {    
+    glm::vec3 opposingForce = (momentum() / deltaTime) * -1.0f * glm::normalize(collisionPoint);
+    glm::vec3 appliedForce = (objB.momentum() / deltaTime) * -1.0f * glm::normalize(collisionPoint);
+    
+    std::cout << "ID: " << ID << '\n';
+    std::cout << "momentum: " << momentum().x << ' ' << momentum().y << ' ' << momentum().z << '\n';
+    std::cout << "objB.momentum: " << objB.momentum().x << ' ' << objB.momentum().y << ' ' << objB.momentum().z << "\n";
+    std::cout << "collisionPoint: "  << collisionPoint.x << ' ' << collisionPoint.y << ' ' << collisionPoint.z << '\n';
+    std::cout << "opposingForce: " << opposingForce.x << ' ' << opposingForce.y << ' ' << opposingForce.z << ' ' << glm::length(opposingForce) << '\n';
+    std::cout << "appliedForce: " << appliedForce.x << ' ' << appliedForce.y << ' ' << appliedForce.z << ' '<< glm::length(appliedForce) << "\n\n";
+    
+    forceVectors.add(objB.ID, glm::vec3(0.0f)) = opposingForce;
 }
 
 // assumes all points have the same origin
@@ -143,13 +139,7 @@ std::vector<Polygon> PhysObject::closestPolygons(PhysObject& objB) {
             glm::distance(bPos, objB.pos),
             glm::distance(cPos, objB.pos)
         };
-
-        std::cout << objB.pos.x << ' ' << objB.pos.y << ' ' << objB.pos.z << ' ' << radiusB << '\n';
-        std::cout << aPos.x << ' ' << aPos.y << ' ' << aPos.z << ' ' << distances[0] << '\n';
-        std::cout << bPos.x << ' ' << bPos.y << ' ' << bPos.z << ' ' << distances[1] << '\n';
-        std::cout << cPos.x << ' ' << cPos.y << ' ' << cPos.z << ' ' << distances[2] << '\n';
         
-
         // vertex is possibly making contact with the other object
         if (distances[0] + COLLISION_VARIANCE <= radiusB || distances[1] + COLLISION_VARIANCE<= radiusB || distances[2] + COLLISION_VARIANCE <= radiusB) {
             relevantPolygons.push_back({a, b, c});
@@ -169,9 +159,9 @@ std::vector<Polygon> PhysObject::closestPolygons(PhysObject& objB) {
 
         for (int j = 0; j < 3; j++) {
             double edgeDistanceA = glm::abs(distances[j] * glm::sin(angles[j][0]));
-            double edgeDistanceB = glm::abs(distances[(j + 1) % 3] * glm::sin(angles[j][1]));
+            // double edgeDistanceB = glm::abs(distances[(j + 1) % 3] * glm::sin(angles[j][1]));
 
-            std::cout << edgeDistanceB << ' ' << edgeDistanceB << std::endl;
+            // std::cout << edgeDistanceB << ' ' << edgeDistanceB << std::endl;
 
             if (angles[j][0] > glm::radians(90.0) || angles[j][1] > glm::radians(90.0)) {
                 continue;
@@ -184,24 +174,26 @@ std::vector<Polygon> PhysObject::closestPolygons(PhysObject& objB) {
             }
         }
 
-        std::cout << std::endl;
+        // std::cout << std::endl;
     }
 
-    std::cout << "numPolygons: " << relevantPolygons.size() << std::endl;
+    // std::cout << "numPolygons: " << relevantPolygons.size() << std::endl;
 
     return relevantPolygons;
 }
 
-void PhysObject::resolveCollision(PhysObject& objB, float deltaTime) {
+void PhysObject::resolveCollision(PhysObject& objB, glm::vec3 collisionPoint, float deltaTime) {
+
     if (collisionCallback == nullptr) {
-        transferEnergy(objB, deltaTime);
+
+        transferEnergy(collisionPoint, objB, deltaTime);
     }
     else {
-        collisionCallback(this, objB, deltaTime);
+        collisionCallback(this, objB, collisionPoint, deltaTime);
     }
 }
 
-PhysObject::PhysObject(Mesh shape, std::string id): ID(id), myMesh(shape), pos(0.0f), scale(1.0f), vel(0.0f), mass(1.0f), isStatic(false), isGhost(false), forceVectors(26), collisionCallback(nullptr) {}
+PhysObject::PhysObject(Mesh shape, std::string id): ID(id), myMesh(shape), pos(0.0f), scale(1.0f), angle(0.0), vel(0.0f), mass(1.0f), isStatic(false), isGhost(false), forceVectors(26), collisionCallback(nullptr) {}
 
 void PhysObject::addKeyCallback(std::string name, int key, int state, void (*callback)(PhysObject&, KeyCallback* self)) {
     callbacks.push_back({
@@ -281,6 +273,8 @@ void World::updateCollisions(PhysObject& objA, float deltaTime) {
 
         bool isColliding = false;
 
+        glm::vec3 collisionPoint; // world-space
+
         for (int a = 0; a < aPolygons.size(); a++) {
             std::vector<glm::vec3> polyA = {
                 glm::translate(objA.modelMatrix(), aPolygons[a].a.pos)[3], 
@@ -308,6 +302,7 @@ void World::updateCollisions(PhysObject& objA, float deltaTime) {
                     for (int k = 0; k < polyB.size(); k++) {
                         double distance = glm::distance(polyA[j], polyB[k]);
                         if (distance < COLLISION_VARIANCE) {
+                            collisionPoint = polyA[j];
                             isColliding = true;
                             break;
                         }
@@ -326,12 +321,13 @@ void World::updateCollisions(PhysObject& objA, float deltaTime) {
                         double distance = hyp * glm::sin(angles[0]);
 
                         if (distance <= COLLISION_VARIANCE) {
+                            collisionPoint = polyA[j];
                             isColliding = true;
                             break;
                         }
                     }
 
-                    std::cout << '\n';
+                    // std::cout << '\n';
 
                     if (isColliding == true) {
                         break;
@@ -353,12 +349,13 @@ void World::updateCollisions(PhysObject& objA, float deltaTime) {
                         double distance = hyp * glm::sin(angles[0]);
 
                         if (distance <= COLLISION_VARIANCE) {
+                            collisionPoint = polyB[j];
                             isColliding = true;
                             break;
                         }
                     }
 
-                    std::cout << '\n';
+                    // std::cout << '\n';
 
                     if (isColliding == true) {
                         break;
@@ -371,17 +368,13 @@ void World::updateCollisions(PhysObject& objA, float deltaTime) {
             }
         }
 
-
         if (isColliding) {
-            // std::cout << "objA: " << objA.ID << " objB: " << objB.ID << std::endl;
+            std::cout << "objA: " << objA.ID << " objB: " << objB.ID << std::endl;
 
-            if (!objA.forceVectors.hasEntry(objB.ID) || !objB.forceVectors.hasEntry(objA.ID)){
-                // std::cout << "adding forces" << std::endl;
-
-                objA.resolveCollision(objB, deltaTime);
-                objB.resolveCollision(objA, deltaTime);
+            if (!(objA.forceVectors.hasEntry(objB.ID) || objB.forceVectors.hasEntry(objA.ID))) {
+                objA.resolveCollision(objB, collisionPoint - objA.pos, deltaTime);
+                objB.resolveCollision(objA, collisionPoint - objB.pos, deltaTime);
             }
-
         } 
         else {
 
@@ -407,9 +400,10 @@ void World::calculateMovement(PhysObject& obj, float deltaTime) {
     glm::vec3 accel = obj.forceSum() / obj.mass;
 
     // possibly add a max-distance check here to prevent phasing through items.
-
     obj.vel += accel * deltaTime;
     obj.pos += obj.vel * deltaTime;
+
+    // obj.resetForces();
 }
 
 void World::addGravity(PhysObject& obj) {

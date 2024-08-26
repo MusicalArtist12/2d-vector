@@ -46,12 +46,12 @@ void moveDown(PhysObject& object, KeyCallback* self) {
     object.addKeyCallback("cancel down", self->key, GLFW_RELEASE, cancelMovement);
 }
 
-void collisionCallback(PhysObject* self, PhysObject& objB, float deltaTime) {
+void collisionCallback(PhysObject* self, PhysObject& objB, glm::vec3 collisionPoint, float deltaTime) {
     // glm::vec3 tempvel = self->vel;
 
     // self->vel = glm::vec3(0.0);
 
-    self->transferEnergy(objB, deltaTime);
+    self->transferEnergy(collisionPoint, objB, deltaTime);
 
     // self->vel = tempvel;
 }
@@ -83,8 +83,8 @@ int main() {
     // world.add(PhysObject(Mesh(genPolygon(32)), "left wall")).pos = glm::vec3(-10, 0, 0);
     // world.add(PhysObject(Mesh(genPolygon(32)), "right wall")).pos = glm::vec3(10, 0, 0);
 
-    world.entry("left wall").isStatic = true;
-    world.entry("right wall").isStatic = true;
+    // world.entry("left wall").isStatic = true;
+    // world.entry("right wall").isStatic = true;
     world.entry("left wall").scale = glm::vec3(0.25, 1, 1);
     world.entry("right wall").scale = glm::vec3(0.25, 1, 1);
     world.entry("pong ball").scale = glm::vec3(0.5);
@@ -249,21 +249,20 @@ void objectSubApp(PhysObject& myObject) {
     if (ImGui::TreeNode("Mesh Data")) {
         ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x, 260), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-/*
-        for (int i = 0; i < myObject.myMesh.vertices.size(); i++) {
-            ImGui::PushID(&myObject.myMesh.vertices[i]);
-            ImGui::DragFloat2("Position", myObject.myMesh.vertices[i].pos);
-            ImGui::SameLine(); ImGui::ColorEdit3("Color", myObject.myMesh.vertices[i].rgba);
+        BufferMap bf = BufferMap(&myObject.myMesh.VAO, &myObject.myMesh.VBO, GL_ARRAY_BUFFER, GL_READ_WRITE);
+        Vertex* vertices = (Vertex*)bf.data;
+
+        for (int i = 0; i < myObject.myMesh.numVertices; i++) {
+            ImGui::PushID(&vertices[i]);
+            ImGui::DragFloat2("Position", &vertices[i].pos[0]);
+            ImGui::SameLine(); ImGui::ColorEdit3("Color", &vertices[i].rgba[0]);
             ImGui::PopID();
         }
 
         ImGui::EndChild();
         ImGui::TreePop();
 
-        if (ImGui::Button("Update Mesh")) {
-            myObject.myMesh.upToDate = false;
-        }
-*/
+
     }
 
     ImGui::PopID();

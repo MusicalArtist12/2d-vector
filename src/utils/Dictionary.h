@@ -46,6 +46,8 @@ class Dictionary {
 
 
         T remove(std::string name);   
+
+        // does not change the value if it already exists
         T& add(std::string name, T initial); 
         T& entry(std::string name);
 
