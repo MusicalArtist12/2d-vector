@@ -2,6 +2,7 @@
 #define WORLDENGINE_H
 
 #include "Mesh.h"
+#include "glm/ext/scalar_constants.hpp"
 #include "utils/Dictionary_impl.h"
 #include "utils/Utils.h"
 #include "Render.h"
@@ -9,6 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 #include <string>
 #include <vector>
@@ -25,9 +27,50 @@ struct KeyCallback {
 };
 
 struct Polygon {
-    Vertex a;
-    Vertex b;
-    Vertex c;
+    glm::vec3 a;
+    glm::vec3 b;
+    glm::vec3 c;
+
+    inline glm::vec3& index(int i) {
+        i = i % 3;
+        
+        if (i == 0) {
+            return a;
+        }
+        if (i == 1) {
+            return b;
+        }
+
+        return c;
+    }
+
+    // modulates i
+    inline glm::vec3& operator[](int i) {
+        return index(i);
+    }
+
+    inline double height(int i) {
+        
+
+        return glm::sin(angle(i + 1)) * glm::distance(index(i), index(i + 1));
+    }
+
+    inline double angle(int i) {
+        glm::vec3 lineA = index(i + 1) - index(i);
+        glm::vec3 lineB = index(i + 2) - index(i);
+        
+        double angleA = glm::atan(lineA.y, lineA.x);
+        double angleB = glm::atan(lineB.y, lineB.x);
+
+        double myAngle = angleA < angleB ? angleB - angleA : angleA - angleB;
+
+        if (myAngle > glm::radians(180.0)) {
+            myAngle = glm::radians(360.0) - myAngle; 
+        }
+
+        return myAngle;
+
+    }
 };
 
 
@@ -46,7 +89,7 @@ class PhysObject {
         
         float mass;
 
-        // completely unmoving. still has collisions
+        // counters every force applied to it
         bool isStatic;
 
         // no collision handling. none.
@@ -58,7 +101,7 @@ class PhysObject {
         glm::vec3 forceSum();
 
         inline glm::vec3 accel() { return forceSum()/mass; }
-        inline glm::vec3 momentum() { return isStatic ? glm::vec3(0.0f) : mass * vel; }
+        inline glm::vec3 momentum() { return mass * vel; }
         inline float kineticEnergy() { return 0.5 * mass * glm::pow(glm::length(vel), 2); }
         
         inline void resetForces() {
@@ -71,9 +114,6 @@ class PhysObject {
         inline double radius() { return myMesh.radius(scale); }
 
         std::vector<Polygon> closestPolygons(PhysObject& objB);
-        void transferEnergy(glm::vec3 collisionPoint, PhysObject& objB,  float deltaTime);
-
-        void resolveCollision(PhysObject& objB, glm::vec3 collisionPoint, float deltaTime);
         
         void (*collisionCallback)(PhysObject* self, PhysObject& objB, glm::vec3 collisionPoint, float deltaTime);
 
@@ -92,7 +132,8 @@ class World {
         void updateMovement(float deltaTime);
         void addGravity(PhysObject& obj);
         void calculateMovement(PhysObject& obj, float deltaTime);
-        void updateCollisions(PhysObject& obj, float deltaTime);
+        void updateCollisions(float deltaTime);
+        std::vector<glm::vec3> collisionPoints(Polygon polyA, Polygon polyB, bool& isClipping);
 
         Dictionary<PhysObject> objectTable;
 

@@ -1,5 +1,6 @@
 #include "World.h"
 #include "Shader.h"
+#include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
 #include <glm/gtx/vector_angle.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -7,20 +8,6 @@
 extern World world;
 
 const double COLLISION_VARIANCE = 0.001;
-
-float getVecAngle(glm::vec3 vector) {
-    if (glm::length(vector) == 0.0) {
-        return 0.0f;
-    }
-    
-    float angle1;
-
-    if(vector.x > 0) angle1 = glm::atan(vector.y/vector.x);
-    else if(vector.x < 0) angle1 = glm::atan(vector.y/vector.x) - glm::radians(180.0f);
-    else angle1 = glm::radians(90.0f) * vector.y/glm::abs(vector.y);
-
-    return angle1;
-}
 
 glm::mat4 PhysObject::modelMatrix() {
     glm::mat4 model = glm::mat4(1.0f);
@@ -47,56 +34,6 @@ glm::vec3 PhysObject::forceSum() {
     }
 
     return forces;
-}
-
-// collision point: the point of impact on the current object
-void PhysObject::transferEnergy(glm::vec3 collisionPoint, PhysObject& objB,  float deltaTime) {    
-    glm::vec3 opposingForce = (momentum() / deltaTime) * -1.0f * glm::normalize(collisionPoint);
-    glm::vec3 appliedForce = (objB.momentum() / deltaTime) * -1.0f * glm::normalize(collisionPoint);
-    
-    std::cout << "ID: " << ID << '\n';
-    std::cout << "momentum: " << momentum().x << ' ' << momentum().y << ' ' << momentum().z << '\n';
-    std::cout << "objB.momentum: " << objB.momentum().x << ' ' << objB.momentum().y << ' ' << objB.momentum().z << "\n";
-    std::cout << "collisionPoint: "  << collisionPoint.x << ' ' << collisionPoint.y << ' ' << collisionPoint.z << '\n';
-    std::cout << "opposingForce: " << opposingForce.x << ' ' << opposingForce.y << ' ' << opposingForce.z << ' ' << glm::length(opposingForce) << '\n';
-    std::cout << "appliedForce: " << appliedForce.x << ' ' << appliedForce.y << ' ' << appliedForce.z << ' '<< glm::length(appliedForce) << "\n\n";
-    
-    forceVectors.add(objB.ID, glm::vec3(0.0f)) = opposingForce;
-}
-
-// assumes all points have the same origin
-glm::vec3 getTriangleAngles(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
-    // angle a
-    glm::vec3 p = b - a;
-    glm::vec3 q = c - a;
-
-    double angleA = glm::abs(glm::atan(p.y, p.x) - glm::atan(q.y, q.x));
-
-    if (angleA > glm::radians(180.0)) {
-        angleA = glm::radians(360.0) - angleA; 
-    }
-
-    // angle b 
-    p = a - b;
-    q = c - b;
-
-    double angleB = glm::abs(glm::atan(p.y, p.x) - glm::atan(q.y, q.x));
-
-    if (angleB > glm::radians(180.0)) {
-        angleB = glm::radians(360.0) - angleB;
-    }
-
-    // angle c 
-    p = a - c;
-    q = b - c;
-
-    double angleC = glm::abs(glm::atan(p.y, p.x) - glm::atan(q.y, q.x));
-
-    if (angleC > glm::radians(180.0)) {
-        angleC = glm::radians(360.0) - angleC;
-    }
-
-    return glm::vec3(angleA, angleB, angleC);
 }
 
 std::vector<Polygon> PhysObject::closestPolygons(PhysObject& objB) {
@@ -142,56 +79,39 @@ std::vector<Polygon> PhysObject::closestPolygons(PhysObject& objB) {
         
         // vertex is possibly making contact with the other object
         if (distances[0] + COLLISION_VARIANCE <= radiusB || distances[1] + COLLISION_VARIANCE<= radiusB || distances[2] + COLLISION_VARIANCE <= radiusB) {
-            relevantPolygons.push_back({a, b, c});
+            relevantPolygons.push_back({a.pos, b.pos, c.pos});
             continue;
         }
 
         if (distances[0] - COLLISION_VARIANCE <= radiusB || distances[1] - COLLISION_VARIANCE<= radiusB || distances[2] - COLLISION_VARIANCE <= radiusB) {
-            relevantPolygons.push_back({a, b, c});
+            relevantPolygons.push_back({a.pos, b.pos, c.pos});
             continue;
         }     
 
-        glm::vec3 angles[] = {
-            getTriangleAngles(aPos, bPos, objB.pos), 
-            getTriangleAngles(bPos, cPos, objB.pos), 
-            getTriangleAngles(cPos, aPos, objB.pos)
+        Polygon polygons[] = {
+            {aPos, bPos, objB.pos}, 
+            {bPos, cPos, objB.pos}, 
+            {cPos, aPos, objB.pos}
         };
 
-        for (int j = 0; j < 3; j++) {
-            double edgeDistanceA = glm::abs(distances[j] * glm::sin(angles[j][0]));
-            // double edgeDistanceB = glm::abs(distances[(j + 1) % 3] * glm::sin(angles[j][1]));
+        for (int j = 0; j < 3; j++) {  
 
-            // std::cout << edgeDistanceB << ' ' << edgeDistanceB << std::endl;
-
-            if (angles[j][0] > glm::radians(90.0) || angles[j][1] > glm::radians(90.0)) {
+            if (polygons[j].angle(0) > glm::radians(90.0) || polygons[j].angle(1) > glm::radians(90.0)) {
                 continue;
             }
-
-
+        
+            double edgeDistanceA = polygons[j].height(2);
+        
             if (edgeDistanceA + COLLISION_VARIANCE <= radiusB || edgeDistanceA - COLLISION_VARIANCE <= radiusB ) {
-                relevantPolygons.push_back({a, b, c});
+                relevantPolygons.push_back({a.pos, b.pos, c.pos});
                 break;
             }
         }
-
-        // std::cout << std::endl;
     }
-
-    // std::cout << "numPolygons: " << relevantPolygons.size() << std::endl;
 
     return relevantPolygons;
 }
 
-void PhysObject::resolveCollision(PhysObject& objB, glm::vec3 collisionPoint, float deltaTime) {
-
-    if (collisionCallback == nullptr) {
-
-        transferEnergy(collisionPoint, objB, deltaTime);
-    }
-    else {
-        collisionCallback(this, objB, collisionPoint, deltaTime);
-    }
-}
 
 PhysObject::PhysObject(Mesh shape, std::string id): ID(id), myMesh(shape), pos(0.0f), scale(1.0f), angle(0.0), vel(0.0f), mass(1.0f), isStatic(false), isGhost(false), forceVectors(26), collisionCallback(nullptr) {}
 
@@ -243,6 +163,10 @@ void World::update(Window& window, RenderQueue& renderQueue) {
 }
 
 void World::updateMovement(float deltaTime) {
+    if (useCollisions) {
+        updateCollisions(deltaTime);
+    }
+    
     for (int i = 0; i < objectTable.size(); i++) {
         PhysObject& iObject = objectTable.getRef(i);
         
@@ -250,10 +174,7 @@ void World::updateMovement(float deltaTime) {
             if (useGravity) {
                 addGravity(iObject);
             }
-            
-            if (useCollisions) {
-                updateCollisions(iObject, deltaTime);
-            }
+        
         }
     }
 
@@ -264,135 +185,142 @@ void World::updateMovement(float deltaTime) {
     }
 }
 
-void World::updateCollisions(PhysObject& objA, float deltaTime) {
+void World::updateCollisions(float deltaTime) {
     for (int i = 0; i < objectTable.size(); i++) {
-        PhysObject& objB = objectTable.getRef(i);
+        PhysObject& objA = objectTable.getRef(i);
 
-        std::vector<Polygon> aPolygons = objA.closestPolygons(objB);
-        std::vector<Polygon> bPolygons = objB.closestPolygons(objA);
+        for (int j = i + 1; j < objectTable.size(); j++) {
+            PhysObject& objB = objectTable.getRef(j);
 
-        bool isColliding = false;
+            std::vector<Polygon> aPolygons = objA.closestPolygons(objB);
+            std::vector<Polygon> bPolygons = objB.closestPolygons(objA);
 
-        glm::vec3 collisionPoint; // world-space
+            bool isColliding = false;
+            bool isClipping = false;
 
-        for (int a = 0; a < aPolygons.size(); a++) {
-            std::vector<glm::vec3> polyA = {
-                glm::translate(objA.modelMatrix(), aPolygons[a].a.pos)[3], 
-                glm::translate(objA.modelMatrix(), aPolygons[a].b.pos)[3], 
-                glm::translate(objA.modelMatrix(), aPolygons[a].c.pos)[3]
-            };
+            glm::vec3 collisionPoint; // world-space
 
-            for (int b = 0; b < bPolygons.size(); b++) {
-                // what is the shortest possible line between each triangle?
-                /*
-                    cases:
-                        - Edge - Edge (which in theory should just proc on edge-vertex )
-                        - Edge - Vertex
-                        - Vertex - Vertex 
-                */
-               
-                std::vector<glm::vec3> polyB = {
-                    glm::translate(objB.modelMatrix(), bPolygons[b].a.pos)[3], 
-                    glm::translate(objB.modelMatrix(), bPolygons[b].b.pos)[3], 
-                    glm::translate(objB.modelMatrix(), bPolygons[b].c.pos)[3]
+            for (int a = 0; a < aPolygons.size(); a++) {
+                Polygon polyA = {
+                    glm::translate(objA.modelMatrix(), aPolygons[a].a)[3], 
+                    glm::translate(objA.modelMatrix(), aPolygons[a].b)[3], 
+                    glm::translate(objA.modelMatrix(), aPolygons[a].c)[3]
                 };
 
-                // Vertex - Vertex
-                for (int j = 0; j < polyA.size(); j++) {
-                    for (int k = 0; k < polyB.size(); k++) {
-                        double distance = glm::distance(polyA[j], polyB[k]);
-                        if (distance < COLLISION_VARIANCE) {
-                            collisionPoint = polyA[j];
-                            isColliding = true;
-                            break;
-                        }
-                    }
-
-                    if (isColliding == true) {
-                        break;
-                    }
-                }
-                
-                // Vertex (on A) - Edge 
-                for (int j = 0; j < polyA.size(); j++) {
-                    for (int k = 0; k < polyB.size(); k++) {
-                        glm::vec3 angles = getTriangleAngles(polyB[k], polyB[(k + 1) % polyB.size()], polyA[j]);
-                        double hyp = glm::distance(polyA[j], polyB[k]);
-                        double distance = hyp * glm::sin(angles[0]);
-
-                        if (distance <= COLLISION_VARIANCE) {
-                            collisionPoint = polyA[j];
-                            isColliding = true;
-                            break;
-                        }
-                    }
-
-                    // std::cout << '\n';
-
-                    if (isColliding == true) {
-                        break;
-                    }
+                for (int b = 0; b < bPolygons.size(); b++) {
+                    Polygon polyB = {
+                        glm::translate(objB.modelMatrix(), bPolygons[b].a)[3], 
+                        glm::translate(objB.modelMatrix(), bPolygons[b].b)[3], 
+                        glm::translate(objB.modelMatrix(), bPolygons[b].c)[3]
+                    };
 
                     
-                }
+                    std::vector<glm::vec3> points = collisionPoints(polyA, polyB, isClipping);
+                    
+                    if (points.size() > 0) {
+                        isColliding = true;
+                        collisionPoint = glm::vec3(0.0f);
 
-                if (isColliding == true) {
-                    break;
-                }
-
-                // Vertex (on B) - Edge 
-                for (int j = 0; j < polyB.size(); j++) {
-
-                    for (int k = 0; k < polyA.size(); k++) {
-                        glm::vec3 angles = getTriangleAngles(polyA[k], polyA[(k + 1) % polyA.size()], polyB[j]);
-                        double hyp = glm::distance(polyA[j], polyB[k]);
-                        double distance = hyp * glm::sin(angles[0]);
-
-                        if (distance <= COLLISION_VARIANCE) {
-                            collisionPoint = polyB[j];
-                            isColliding = true;
-                            break;
+                        for (int i = 0; i < points.size(); i++) {
+                            collisionPoint += points[i];
                         }
-                    }
 
-                    // std::cout << '\n';
+                        collisionPoint = collisionPoint / (float)points.size();
 
-                    if (isColliding == true) {
                         break;
-                    }         
-                }
-
-                if (isColliding == true) {
-                    break;
+                    }
                 }
             }
+
+            if (isColliding) {
+                glm::vec3 objAForce = glm::sign(collisionPoint - objA.pos) * (objA.momentum() / deltaTime) * glm::normalize(collisionPoint - objA.pos);
+                glm::vec3 objBForce = glm::sign(collisionPoint - objB.pos) * (objB.momentum() / deltaTime) * glm::normalize(collisionPoint - objB.pos);
+
+                if (objA.isStatic) {
+                    objAForce = objAForce - objBForce;
+                }
+                if (objB.isStatic) {
+                    objBForce = objBForce - objAForce;
+                }
+
+
+                objA.forceVectors.add(objB.ID, glm::vec3(0.0f)) = objBForce - objAForce;
+                objB.forceVectors.add(objA.ID, glm::vec3(0.0f)) = objAForce - objBForce;
+
+                if (objA.collisionCallback != nullptr) {
+                    objA.collisionCallback(&objA, objB, collisionPoint, deltaTime);    
+                }
+                if (objB.collisionCallback != nullptr) {
+                    objB.collisionCallback(&objB, objA, collisionPoint, deltaTime);    
+                }
+            } 
+            else {
+
+                if (objA.forceVectors.hasEntry(objB.ID)) {
+                    objA.forceVectors.remove(objB.ID);
+                    // std::cout << "removing A forces" << std::endl;
+
+                }
+
+                if (objB.forceVectors.hasEntry(objA.ID)) {
+                    // std::cout << "removing B forces" << std::endl;
+
+                    objB.forceVectors.remove(objA.ID);
+                }
+            }
+        }  
+    }
+}
+
+
+std::vector<glm::vec3> World::collisionPoints(Polygon polyA, Polygon polyB, bool& isClipping) {
+    std::vector<glm::vec3> points;
+    
+    // Vertex - Vertex
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            double distance = glm::distance(polyA[i], polyB[j]);
+            if (distance < COLLISION_VARIANCE) {
+                points.push_back(polyA[j]);
+            }
+
         }
+    }
+    
+    // Vertex (on A) - Edge 
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            Polygon poly = Polygon {
+                polyA[i],
+                polyB[j], 
+                polyB[j + 1], 
+            };
 
-        if (isColliding) {
-            std::cout << "objA: " << objA.ID << " objB: " << objB.ID << std::endl;
-
-            if (!(objA.forceVectors.hasEntry(objB.ID) || objB.forceVectors.hasEntry(objA.ID))) {
-                objA.resolveCollision(objB, collisionPoint - objA.pos, deltaTime);
-                objB.resolveCollision(objA, collisionPoint - objB.pos, deltaTime);
-            }
-        } 
-        else {
-
-            if (objA.forceVectors.hasEntry(objB.ID)) {
-                objA.forceVectors.remove(objB.ID);
-                // std::cout << "removing A forces" << std::endl;
-
+            if (poly.height(0) <= COLLISION_VARIANCE) {
+                points.push_back(polyA[i]);
             }
 
-            if (objB.forceVectors.hasEntry(objA.ID)) {
-                // std::cout << "removing B forces" << std::endl;
-
-                objB.forceVectors.remove(objA.ID);
-            }
         }
-
         
-    }  
+    }
+
+
+    // Vertex (on B) - Edge 
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            Polygon poly = Polygon {
+                polyB[i],
+                polyA[j], 
+                polyA[j + 1], 
+            };
+
+            if (poly.height(0) <= COLLISION_VARIANCE) {
+                points.push_back(polyA[i]);
+            }
+        }   
+    }
+
+    return points;
 }
 
 void World::calculateMovement(PhysObject& obj, float deltaTime) {

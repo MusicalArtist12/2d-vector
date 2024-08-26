@@ -47,13 +47,7 @@ void moveDown(PhysObject& object, KeyCallback* self) {
 }
 
 void collisionCallback(PhysObject* self, PhysObject& objB, glm::vec3 collisionPoint, float deltaTime) {
-    // glm::vec3 tempvel = self->vel;
 
-    // self->vel = glm::vec3(0.0);
-
-    self->transferEnergy(collisionPoint, objB, deltaTime);
-
-    // self->vel = tempvel;
 }
 
 int main() { 
@@ -77,48 +71,55 @@ int main() {
     };
 
     world.add(PhysObject(genPolygon(32), "pong ball"));
-    world.add(PhysObject(Mesh(wallVertices, wallIndices), "left wall")).pos = glm::vec3(-10, 0, 0);
-    world.add(PhysObject(Mesh(wallVertices, wallIndices), "right wall")).pos = glm::vec3(10, 0, 0);
     
-    // world.add(PhysObject(Mesh(genPolygon(32)), "left wall")).pos = glm::vec3(-10, 0, 0);
-    // world.add(PhysObject(Mesh(genPolygon(32)), "right wall")).pos = glm::vec3(10, 0, 0);
+    world.add(PhysObject(Mesh(wallVertices, wallIndices), "left paddle")).pos = glm::vec3(-10, 0, 0);
+    world.add(PhysObject(Mesh(wallVertices, wallIndices), "right paddle")).pos = glm::vec3(10, 0, 0);
 
-    // world.entry("left wall").isStatic = true;
-    // world.entry("right wall").isStatic = true;
-    world.entry("left wall").scale = glm::vec3(0.25, 1, 1);
-    world.entry("right wall").scale = glm::vec3(0.25, 1, 1);
+    world.add(PhysObject(Mesh(wallVertices, wallIndices), "top wall")).pos = glm::vec3(0, 10, 0);
+    world.add(PhysObject(Mesh(wallVertices, wallIndices), "bottom wall")).pos = glm::vec3(0, -10, 0);
+
+    world.entry("left paddle").isStatic = true;
+    world.entry("right paddle").isStatic = true;
+    world.entry("left paddle").scale = glm::vec3(0.25, 1, 1);
+    world.entry("right paddle").scale = glm::vec3(0.25, 1, 1);
     world.entry("pong ball").scale = glm::vec3(0.5);
+    world.entry("pong ball").mass = 0.25;
 
-    world.entry("left wall").addKeyCallback(
+    world.entry("top wall").scale = glm::vec3(10.0, 0.1, 1);
+    world.entry("bottom wall").scale = glm::vec3(10.0, 0.1, 1);
+    world.entry("top wall").isStatic = true;
+    world.entry("bottom wall").isStatic = true;
+
+    world.entry("left paddle").addKeyCallback(
         "up",
         GLFW_KEY_W,
         GLFW_PRESS,
         moveUp
     );
 
-    world.entry("right wall").addKeyCallback(
+    world.entry("right paddle").addKeyCallback(
         "up",
         GLFW_KEY_I,
         GLFW_PRESS,
         moveUp
     );
 
-    world.entry("left wall").addKeyCallback(
+    world.entry("left paddle").addKeyCallback(
         "down",
         GLFW_KEY_S,
         GLFW_PRESS,
         moveDown
     );
 
-    world.entry("right wall").addKeyCallback(
+    world.entry("right paddle").addKeyCallback(
         "down",
         GLFW_KEY_K,
         GLFW_PRESS,
         moveDown
     );
 
-    world.entry("left wall").collisionCallback = collisionCallback;
-    world.entry("right wall").collisionCallback = collisionCallback;
+    world.entry("left paddle").collisionCallback = collisionCallback;
+    world.entry("right paddle").collisionCallback = collisionCallback;
 
     while (!window.shouldClose()) {
         window.refresh();
@@ -267,6 +268,7 @@ void objectSubApp(PhysObject& myObject) {
 
     ImGui::PopID();
 }
+
 
 void spawnPolyApp(bool* run, std::string ID) {
     if (!*run) {
