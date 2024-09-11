@@ -113,7 +113,7 @@ std::vector<Polygon> PhysObject::closestPolygons(PhysObject& objB) {
 }
 
 
-PhysObject::PhysObject(Mesh shape, std::string id): ID(id), myMesh(shape), pos(0.0f), scale(1.0f), angle(0.0), vel(0.0f), mass(1.0f), isStatic(false), isGhost(false), forceVectors(26), collisionCallback(nullptr) {}
+PhysObject::PhysObject(Mesh shape, std::string id): ID(id), myMesh(shape), pos(0.0f), scale(1.0f), angle(0.0), vel(0.0f), mass(1.0f), isStatic(false), isGhost(false), forceVectors(26), preCollisionCallback(nullptr), postCollisionCallback(nullptr) {}
 
 void PhysObject::addKeyCallback(std::string name, int key, int state, void (*callback)(PhysObject&, KeyCallback* self)) {
     callbacks.push_back({
@@ -144,6 +144,7 @@ void PhysObject::inputLoop(Window& window) {
 
 void World::update(Window& window, RenderQueue& renderQueue) {
     float deltaTime = window.deltaTime > 0 ? window.deltaTime : 0;
+    
    
     if (!isPaused) {
         for (int i = 0; i < objectTable.size(); i++) {
@@ -152,7 +153,7 @@ void World::update(Window& window, RenderQueue& renderQueue) {
         }
 
         for (int i = 0; i < countsPerFrame; i++) {
-            updateMovement(deltaTime/(float)(countsPerFrame));
+            updateMovement((deltaTime / (float)(countsPerFrame)) * ((float)timeScalePercent / 100.0));
         }
     }
 
@@ -233,25 +234,32 @@ void World::updateCollisions(float deltaTime) {
             }
 
             if (isColliding) {
-                glm::vec3 objAForce = glm::sign(collisionPoint - objA.pos) * (objA.momentum() / deltaTime) * glm::normalize(collisionPoint - objA.pos);
-                glm::vec3 objBForce = glm::sign(collisionPoint - objB.pos) * (objB.momentum() / deltaTime) * glm::normalize(collisionPoint - objB.pos);
-
-                if (objA.isStatic) {
-                    objAForce = objAForce - objBForce;
+                if (objA.preCollisionCallback != nullptr) {
+                    objA.preCollisionCallback(&objA, objB, collisionPoint, deltaTime);    
                 }
-                if (objB.isStatic) {
-                    objBForce = objBForce - objAForce;
+                if (objB.preCollisionCallback != nullptr) {
+                    objB.preCollisionCallback(&objB, objA, collisionPoint, deltaTime);    
                 }
 
 
-                objA.forceVectors.add(objB.ID, glm::vec3(0.0f)) = objBForce - objAForce;
-                objB.forceVectors.add(objA.ID, glm::vec3(0.0f)) = objAForce - objBForce;
+                glm::vec3 objAForce = glm::sign(collisionPoint - objA.pos) * ((objA.momentum() / deltaTime)) * glm::normalize(collisionPoint - objA.pos);
+                glm::vec3 objBForce = glm::sign(collisionPoint - objB.pos) * ((objB.momentum() / deltaTime)) * glm::normalize(collisionPoint - objB.pos);
 
-                if (objA.collisionCallback != nullptr) {
-                    objA.collisionCallback(&objA, objB, collisionPoint, deltaTime);    
+                if (!objA.forceVectors.hasEntry(objB.ID)) {
+                    objA.forceVectors.add(objB.ID, glm::vec3(0.0f)) = objBForce - objAForce;
                 }
-                if (objB.collisionCallback != nullptr) {
-                    objB.collisionCallback(&objB, objA, collisionPoint, deltaTime);    
+
+                if (!objB.forceVectors.hasEntry(objA.ID)) {
+                    objB.forceVectors.add(objA.ID, glm::vec3(0.0f)) = objAForce - objBForce;
+                }
+
+
+
+                if (objA.postCollisionCallback != nullptr) {
+                    objA.postCollisionCallback(&objA, objB, collisionPoint, deltaTime);    
+                }
+                if (objB.postCollisionCallback != nullptr) {
+                    objB.postCollisionCallback(&objB, objA, collisionPoint, deltaTime);    
                 }
             } 
             else {
@@ -283,23 +291,30 @@ std::vector<glm::vec3> World::collisionPoints(Polygon polyA, Polygon polyB, bool
             if (distance < COLLISION_VARIANCE) {
                 points.push_back(polyA[j]);
             }
-
         }
     }
     
     // Vertex (on A) - Edge 
     for (int i = 0; i < 3; i++) {
+        // clipping detection
+
+        if (glm::distance(polyA[i], polyB[0]) < polyB.height(0) &&
+            glm::distance(polyA[i], polyB[1]) < polyB.height(1) && 
+            glm::distance(polyA[i], polyB[2]) < polyB.height(2)) {
+                isClipping = true;
+                points.push_back(polyA[i]);
+        }
+
         for (int j = 0; j < 3; j++) {
             Polygon poly = Polygon {
                 polyA[i],
                 polyB[j], 
                 polyB[j + 1], 
             };
-
+        
             if (poly.height(0) <= COLLISION_VARIANCE) {
                 points.push_back(polyA[i]);
             }
-
         }
         
     }

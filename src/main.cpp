@@ -46,8 +46,8 @@ void moveDown(PhysObject& object, KeyCallback* self) {
     object.addKeyCallback("cancel down", self->key, GLFW_RELEASE, cancelMovement);
 }
 
-void collisionCallback(PhysObject* self, PhysObject& objB, glm::vec3 collisionPoint, float deltaTime) {
-
+void preCollisionCallback(PhysObject* self, PhysObject& objB, glm::vec3 collisionPoint, float deltaTime) {
+    // self->vel = glm::vec3(0, 0, 0);
 }
 
 int main() { 
@@ -83,7 +83,10 @@ int main() {
     world.entry("left paddle").scale = glm::vec3(0.25, 1, 1);
     world.entry("right paddle").scale = glm::vec3(0.25, 1, 1);
     world.entry("pong ball").scale = glm::vec3(0.5);
-    world.entry("pong ball").mass = 0.25;
+    world.entry("pong ball").mass = 1.0;
+    world.entry("left paddle").mass = 0.1;
+    world.entry("right paddle").mass = 0.1;
+
 
     world.entry("top wall").scale = glm::vec3(10.0, 0.1, 1);
     world.entry("bottom wall").scale = glm::vec3(10.0, 0.1, 1);
@@ -118,8 +121,8 @@ int main() {
         moveDown
     );
 
-    world.entry("left paddle").collisionCallback = collisionCallback;
-    world.entry("right paddle").collisionCallback = collisionCallback;
+    world.entry("left paddle").preCollisionCallback = preCollisionCallback;
+    world.entry("right paddle").preCollisionCallback = preCollisionCallback;
 
     while (!window.shouldClose()) {
         window.refresh();
@@ -223,6 +226,8 @@ void worldApp(bool* run, std::string ID) {
     ImGui::Text("Physics Settings");
     ImGui::DragFloat("Gravity", &world.grav);
     ImGui::InputInt("Counts Per Frame", &world.countsPerFrame, 1);
+    ImGui::InputInt("TimeScalePercent", &world.timeScalePercent, 1);
+
     ImGui::Checkbox("Use Gravity", &world.useGravity);
     ImGui::Checkbox("Use Collisions", &world.useCollisions);
     ImGui::Checkbox("Paused", &world.isPaused);
@@ -246,6 +251,10 @@ void objectSubApp(PhysObject& myObject) {
     ImGui::Text("Acceleration: (%f, %f) |%f|", myObject.accel().x, myObject.accel().y, glm::length(myObject.accel()));
     ImGui::Text("Momentum: (%f, %f) |%f|", myObject.momentum().x, myObject.momentum().y, glm::length(myObject.momentum()));
     ImGui::Text("Kinetic Energy: %f", myObject.kineticEnergy());
+    ImGui::Checkbox("isStatic", &myObject.isStatic);
+    ImGui::Checkbox("isGhost", &myObject.isGhost);
+    ImGui::InputFloat("Mass", &myObject.mass, 0.1);
+
 
     if (ImGui::TreeNode("Mesh Data")) {
         ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x, 260), false, ImGuiWindowFlags_HorizontalScrollbar);

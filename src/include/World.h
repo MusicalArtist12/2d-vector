@@ -50,8 +50,6 @@ struct Polygon {
     }
 
     inline double height(int i) {
-        
-
         return glm::sin(angle(i + 1)) * glm::distance(index(i), index(i + 1));
     }
 
@@ -69,7 +67,10 @@ struct Polygon {
         }
 
         return myAngle;
+    }
 
+    inline double length(int x, int y) {
+        return glm::distance(index(x), index(y));
     }
 };
 
@@ -115,7 +116,8 @@ class PhysObject {
 
         std::vector<Polygon> closestPolygons(PhysObject& objB);
         
-        void (*collisionCallback)(PhysObject* self, PhysObject& objB, glm::vec3 collisionPoint, float deltaTime);
+        void (*preCollisionCallback)(PhysObject* self, PhysObject& objB, glm::vec3 collisionPoint, float deltaTime);
+        void (*postCollisionCallback)(PhysObject* self, PhysObject& objB, glm::vec3 collisionPoint, float deltaTime);
 
 
         void addKeyCallback(std::string name, int key, int state, void (*callback)(PhysObject&, KeyCallback* self));
@@ -143,6 +145,7 @@ class World {
         bool useCollisions;
         bool isPaused;
         int countsPerFrame = 10;
+        int timeScalePercent = 100;
 
         void update(Window& window, RenderQueue& queue);
 
